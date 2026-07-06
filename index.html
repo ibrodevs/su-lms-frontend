@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:'Nunito',system-ui,sans-serif}
+  .bo-scroll::-webkit-scrollbar{width:0;height:0}
+  @keyframes bo-spin{to{transform:rotate(360deg)}}
+  @keyframes bo-fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes bo-pop{0%{transform:scale(.85);opacity:0}100%{transform:scale(1);opacity:1}}
+  @keyframes bo-pulse{0%,100%{opacity:.55}50%{opacity:1}}
+</style>
+</helmet>
+
+<div style="{{ wrapStyle }}">
+
+  <!-- ============ PHONE ============ -->
+  <div style="width:400px;height:850px;background:var(--bezel,#101922);border-radius:56px;padding:13px;flex:0 0 auto;">
+    <div style="position:relative;width:100%;height:100%;background:var(--bg,#ffffff);border-radius:43px;overflow:hidden;display:flex;flex-direction:column;transition:background .3s;">
+
+      <!-- ===== SPLASH ===== -->
+      <sc-if value="{{ isSplash }}" hint-placeholder-val="{{ true }}">
+        <div style="position:absolute;inset:0;z-index:50;background:var(--primary,#1cb0f6);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;">
+          <div style="width:96px;height:96px;border-radius:28px;background:#ffffff;display:flex;align-items:center;justify-content:center;animation:bo-pop .5s ease both;">
+            <span style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:52px;color:var(--primary,#1cb0f6);line-height:1;">B</span>
+          </div>
+          <div style="text-align:center;animation:bo-fade .6s .1s both;">
+            <div style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:38px;color:#fff;letter-spacing:-.5px;">Bilim Ordo</div>
+            <div style="font-weight:700;font-size:15px;color:rgba(255,255,255,.85);margin-top:4px;letter-spacing:.3px;">Учись. Практикуйся. Развивайся.</div>
+          </div>
+          <div style="width:34px;height:34px;border:4px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:bo-spin .8s linear infinite;margin-top:8px;"></div>
+        </div>
+      </sc-if>
+
+      <!-- ===== STATUS BAR ===== -->
+      <sc-if value="{{ notSplash }}" hint-placeholder-val="{{ true }}">
+      <div style="height:46px;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 26px 0 30px;color:var(--text,#2d3a45);z-index:20;">
+        <span style="font-weight:800;font-size:15px;">9:41</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-weight:800;font-size:12px;letter-spacing:.5px;">5G</span>
+          <div style="width:22px;height:11px;border:1.6px solid var(--text,#2d3a45);border-radius:3px;position:relative;opacity:.9;">
+            <div style="position:absolute;inset:1.5px;width:70%;background:var(--text,#2d3a45);border-radius:1px;"></div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== SCROLLABLE CONTENT ===== -->
+      <sc-if value="{{ notSplash }}" hint-placeholder-val="{{ true }}">
+      <div class="bo-scroll" style="flex:1;overflow-y:auto;overflow-x:hidden;position:relative;">
+
+        <!-- ---------- LOGIN ---------- -->
+        <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+          <div style="min-height:100%;padding:44px 28px 32px;display:flex;flex-direction:column;animation:bo-fade .3s both;">
+            <div style="width:76px;height:76px;border-radius:22px;background:var(--primary,#1cb0f6);display:flex;align-items:center;justify-content:center;border-bottom:5px solid var(--primary-dark,#1799d6);">
+              <span style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:42px;color:#fff;line-height:1;">B</span>
+            </div>
+            <h1 style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:32px;color:var(--heading,#0b3a63);margin:26px 0 6px;letter-spacing:-.5px;">Bilim Ordo</h1>
+            <p style="font-weight:600;font-size:15px;color:var(--text2,#8493a1);margin:0 0 34px;line-height:1.4;">Вход в учебное пространство по вашему Student&nbsp;ID</p>
+
+            <label style="font-weight:800;font-size:13px;color:var(--text,#2d3a45);letter-spacing:.3px;">STUDENT ID</label>
+            <input value="{{ idInput }}" onInput="{{ onIdInput }}" placeholder="BO-2024-XXXX" style="{{ loginInputStyle }}" />
+            <sc-if value="{{ loginErr }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:7px;margin-top:10px;color:var(--danger,#ff4b4b);font-weight:700;font-size:13px;">
+                <span style="width:18px;height:18px;border-radius:50%;background:var(--danger,#ff4b4b);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;">!</span>
+                Неверный Student ID. Проверьте и попробуйте снова.
+              </div>
+            </sc-if>
+            <p style="font-weight:600;font-size:13px;color:var(--text2,#8493a1);margin:12px 4px 0;line-height:1.5;">Введите Student&nbsp;ID, который вы получили от администратора или учителя.</p>
+
+            <div style="flex:1;"></div>
+            <button onClick="{{ doLogin }}" style="{{ primaryBtn }}" style-active="transform:translateY(3px);border-bottom-width:2px;">Войти</button>
+            <button onClick="{{ fillDemo }}" style="margin-top:12px;background:none;border:none;color:var(--primary,#1cb0f6);font-weight:800;font-size:14px;font-family:'Nunito',sans-serif;cursor:pointer;padding:8px;">Использовать демо-ID</button>
+          </div>
+        </sc-if>
+
+        <!-- ---------- HOME / DASHBOARD ---------- -->
+        <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:8px 20px 24px;animation:bo-fade .3s both;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:46px;height:46px;border-radius:15px;background:var(--primary,#1cb0f6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:19px;">{{ studentInitial }}</div>
+                <div>
+                  <div style="font-weight:700;font-size:13px;color:var(--text2,#8493a1);">С возвращением,</div>
+                  <div style="font-weight:800;font-size:18px;color:var(--text,#2d3a45);line-height:1.1;">{{ studentName }}</div>
+                </div>
+              </div>
+              <button onClick="{{ toggleTheme }}" style="width:42px;height:42px;border-radius:13px;background:var(--surface2,#f3f6f9);border:2px solid var(--border,#e6ebf0);display:flex;align-items:center;justify-content:center;color:var(--text,#2d3a45);cursor:pointer;">
+                <span style="font-size:18px;">{{ themeIcon }}</span>
+              </button>
+            </div>
+
+            <!-- stats -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;">
+              <div style="{{ statCard }}"><div style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:28px;color:var(--primary,#1cb0f6);line-height:1;">{{ stats.subjects }}</div><div style="font-weight:700;font-size:13px;color:var(--text2,#8493a1);margin-top:4px;">Предметов</div></div>
+              <div style="{{ statCard }}"><div style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:28px;color:var(--success,#58cc02);line-height:1;">{{ stats.lessons }}</div><div style="font-weight:700;font-size:13px;color:var(--text2,#8493a1);margin-top:4px;">Уроков пройдено</div></div>
+              <div style="{{ statCard }}"><div style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:28px;color:var(--heading,#0b3a63);line-height:1;">{{ stats.tests }}</div><div style="font-weight:700;font-size:13px;color:var(--text2,#8493a1);margin-top:4px;">Тестов доступно</div></div>
+              <div style="{{ statCard }}"><div style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:28px;color:#ff9600;line-height:1;">{{ stats.avg }}%</div><div style="font-weight:700;font-size:13px;color:var(--text2,#8493a1);margin-top:4px;">Средний балл</div></div>
+            </div>
+
+            <!-- continue -->
+            <div style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:19px;color:var(--heading,#0b3a63);margin-bottom:12px;">Продолжить обучение</div>
+            <div onClick="{{ continueOpen }}" style="background:var(--primary-soft,#e8f6ff);border:2px solid var(--primary,#1cb0f6);border-radius:20px;padding:18px;margin-bottom:26px;cursor:pointer;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:44px;height:44px;border-radius:13px;background:var(--primary,#1cb0f6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px;flex:0 0 auto;">{{ continueCard.initial }}</div>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-weight:700;font-size:12px;color:var(--primary,#1cb0f6);">{{ continueCard.subject }}</div>
+                  <div style="font-weight:800;font-size:16px;color:var(--text,#2d3a45);line-height:1.15;">{{ continueCard.lesson }}</div>
+                </div>
+              </div>
+              <div style="height:10px;background:rgba(28,176,246,.2);border-radius:6px;margin-top:14px;overflow:hidden;"><div style="{{ continueCard.barStyle }}"></div></div>
+              <div style="font-weight:700;font-size:12px;color:var(--primary,#1cb0f6);margin-top:6px;">{{ continueCard.progress }}% завершено</div>
+            </div>
+
+            <!-- subjects -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <div style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:19px;color:var(--heading,#0b3a63);">Мои предметы</div>
+              <button onClick="{{ goSubjects }}" style="background:none;border:none;color:var(--primary,#1cb0f6);font-weight:800;font-size:14px;cursor:pointer;font-family:'Nunito',sans-serif;">Все</button>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <sc-for list="{{ subjectsView }}" as="s" hint-placeholder-count="3">
+                <div onClick="{{ s.open }}" style="{{ cardStyle }}" style-active="transform:scale(.985);">
+                  <div style="display:flex;align-items:center;gap:13px;">
+                    <div style="{{ s.badgeStyle }}">{{ s.initial }}</div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-weight:800;font-size:16px;color:var(--text,#2d3a45);line-height:1.1;">{{ s.name }}</div>
+                      <div style="font-weight:600;font-size:13px;color:var(--text2,#8493a1);margin-top:2px;">{{ s.teacher }}</div>
+                    </div>
+                    <div style="{{ s.pillStyle }}">{{ s.status }}</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:10px;margin-top:14px;">
+                    <div style="flex:1;height:9px;background:var(--surface2,#f3f6f9);border-radius:6px;overflow:hidden;"><div style="{{ s.barStyle }}"></div></div>
+                    <span style="font-weight:800;font-size:12px;color:var(--text2,#8493a1);">{{ s.progress }}%</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ---------- SUBJECTS LIST ---------- -->
+        <sc-if value="{{ isSubjects }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:8px 20px 24px;animation:bo-fade .3s both;">
+            <h1 style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:28px;color:var(--heading,#0b3a63);margin:6px 0 16px;">Предметы</h1>
+            <div style="display:flex;align-items:center;gap:10px;background:var(--surface2,#f3f6f9);border:2px solid var(--border,#e6ebf0);border-radius:15px;padding:12px 14px;margin-bottom:14px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text2,#8493a1)" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+              <input value="{{ search }}" onInput="{{ onSearch }}" placeholder="Поиск по предметам" style="flex:1;border:none;background:none;outline:none;font-family:'Nunito',sans-serif;font-weight:600;font-size:15px;color:var(--text,#2d3a45);" />
+            </div>
+            <div class="bo-scroll" style="display:flex;gap:8px;overflow-x:auto;margin:0 -20px 18px;padding:2px 20px;">
+              <sc-for list="{{ filterChips }}" as="c" hint-placeholder-count="4">
+                <button onClick="{{ c.set }}" style="{{ c.style }}">{{ c.label }}</button>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <sc-for list="{{ filteredSubjects }}" as="s" hint-placeholder-count="3">
+                <div onClick="{{ s.open }}" style="{{ cardStyle }}" style-active="transform:scale(.985);">
+                  <div style="display:flex;align-items:center;gap:13px;">
+                    <div style="{{ s.badgeStyle }}">{{ s.initial }}</div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-weight:800;font-size:16px;color:var(--text,#2d3a45);line-height:1.1;">{{ s.name }}</div>
+                      <div style="font-weight:600;font-size:13px;color:var(--text2,#8493a1);margin-top:2px;">{{ s.desc }}</div>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:14px;margin-top:14px;">
+                    <span style="font-weight:700;font-size:12px;color:var(--text2,#8493a1);">📘 {{ s.lessonsCount }} уроков</span>
+                    <span style="font-weight:700;font-size:12px;color:var(--text2,#8493a1);">📝 {{ s.testsCount }} тестов</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:10px;margin-top:12px;">
+                    <div style="flex:1;height:9px;background:var(--surface2,#f3f6f9);border-radius:6px;overflow:hidden;"><div style="{{ s.barStyle }}"></div></div>
+                    <span style="font-weight:800;font-size:12px;color:var(--text2,#8493a1);">{{ s.progress }}%</span>
+                  </div>
+                </div>
+              </sc-for>
+              <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+                <div style="text-align:center;padding:50px 20px;color:var(--text2,#8493a1);font-weight:700;">Ничего не найдено</div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ---------- SUBJECT DETAIL ---------- -->
+        <sc-if value="{{ isSubject }}" hint-placeholder-val="{{ false }}">
+          <div style="animation:bo-fade .3s both;">
+            <div style="background:var(--primary,#1cb0f6);padding:6px 20px 24px;">
+              <button onClick="{{ goSubjects }}" style="width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.2);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-bottom:14px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+              </button>
+              <h1 style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:27px;color:#fff;margin:0 0 4px;line-height:1.1;">{{ cur.name }}</h1>
+              <div style="font-weight:700;font-size:14px;color:rgba(255,255,255,.9);">{{ cur.teacher }}</div>
+              <p style="font-weight:600;font-size:14px;color:rgba(255,255,255,.82);margin:10px 0 16px;line-height:1.45;">{{ cur.desc }}</p>
+              <div style="height:11px;background:rgba(255,255,255,.25);border-radius:6px;overflow:hidden;"><div style="{{ cur.barStyleLight }}"></div></div>
+              <div style="font-weight:800;font-size:13px;color:#fff;margin-top:7px;">Прогресс по предмету — {{ cur.progress }}%</div>
+            </div>
+            <div style="padding:18px 20px 24px;">
+              <div style="display:flex;gap:8px;background:var(--surface2,#f3f6f9);padding:5px;border-radius:14px;margin-bottom:18px;">
+                <button onClick="{{ setLessonsTab }}" style="{{ tabLessonsStyle }}">Уроки</button>
+                <button onClick="{{ setTestsTab }}" style="{{ tabTestsStyle }}">Тесты</button>
+              </div>
+
+              <sc-if value="{{ subTabLessons }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                  <sc-for list="{{ cur.lessonsView }}" as="l" hint-placeholder-count="4">
+                    <div onClick="{{ l.open }}" style="{{ cardStyle }}" style-active="transform:scale(.985);">
+                      <div style="display:flex;align-items:center;gap:13px;">
+                        <div style="{{ l.iconStyle }}">
+                          <sc-if value="{{ l.done }}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4 10-10"/></svg></sc-if>
+                          <sc-if value="{{ l.notDone }}" hint-placeholder-val="{{ true }}"><span style="font-weight:800;font-size:15px;">{{ l.num }}</span></sc-if>
+                        </div>
+                        <div style="flex:1;min-width:0;">
+                          <div style="font-weight:800;font-size:15px;color:var(--text,#2d3a45);line-height:1.15;">{{ l.title }}</div>
+                          <div style="font-weight:600;font-size:12px;color:var(--text2,#8493a1);margin-top:3px;">{{ l.desc }}</div>
+                          <div style="display:flex;gap:10px;margin-top:8px;">
+                            <sc-if value="{{ l.hasVideo }}" hint-placeholder-val="{{ false }}"><span style="font-weight:700;font-size:11px;color:var(--primary,#1cb0f6);">▶ Видео</span></sc-if>
+                            <sc-if value="{{ l.hasFiles }}" hint-placeholder-val="{{ false }}"><span style="font-weight:700;font-size:11px;color:var(--text2,#8493a1);">📎 {{ l.files }} файла</span></sc-if>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ subTabTests }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                  <sc-for list="{{ cur.testsView }}" as="t" hint-placeholder-count="2">
+                    <div onClick="{{ t.open }}" style="{{ t.cardStyle }}">
+                      <div style="display:flex;align-items:center;gap:13px;">
+                        <div style="{{ t.iconStyle }}">{{ t.icon }}</div>
+                        <div style="flex:1;min-width:0;">
+                          <div style="font-weight:800;font-size:15px;color:var(--text,#2d3a45);line-height:1.15;">{{ t.title }}</div>
+                          <div style="font-weight:600;font-size:12px;color:var(--text2,#8493a1);margin-top:3px;">{{ t.meta }}</div>
+                        </div>
+                        <div style="{{ t.pillStyle }}">{{ t.pillLabel }}</div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ---------- LESSON ---------- -->
+        <sc-if value="{{ isLesson }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:6px 20px 28px;animation:bo-fade .3s both;">
+            <button onClick="{{ backToSubject }}" style="width:40px;height:40px;border-radius:12px;background:var(--surface2,#f3f6f9);border:2px solid var(--border,#e6ebf0);display:flex;align-items:center;justify-content:center;cursor:pointer;margin-bottom:14px;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text,#2d3a45)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+            </button>
+            <div style="font-weight:700;font-size:13px;color:var(--primary,#1cb0f6);">{{ cur.name }}</div>
+            <h1 style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:25px;color:var(--heading,#0b3a63);margin:2px 0 16px;line-height:1.12;">{{ lesson.title }}</h1>
+
+            <!-- video -->
+            <div style="position:relative;height:196px;border-radius:18px;overflow:hidden;border:2px solid var(--border,#e6ebf0);background:repeating-linear-gradient(45deg,var(--surface2,#f3f6f9),var(--surface2,#f3f6f9) 14px,var(--border,#e6ebf0) 14px,var(--border,#e6ebf0) 28px);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;">
+              <div style="width:60px;height:60px;border-radius:50%;background:var(--primary,#1cb0f6);display:flex;align-items:center;justify-content:center;border-bottom:4px solid var(--primary-dark,#1799d6);cursor:pointer;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
+              </div>
+              <span style="font-family:'Baloo 2',sans-serif;font-weight:700;font-size:12px;color:var(--text2,#8493a1);background:var(--bg,#fff);padding:3px 10px;border-radius:8px;">video · 12:40</span>
+            </div>
+
+            <!-- text -->
+            <h2 style="font-family:'Baloo 2',sans-serif;font-weight:700;font-size:19px;color:var(--heading,#0b3a63);margin:24px 0 8px;">Дискриминант квадратного уравнения</h2>
+            <p style="font-weight:500;font-size:15px;color:var(--text,#2d3a45);line-height:1.6;margin:0 0 14px;">Дискриминант — это выражение, которое позволяет определить число корней квадратного уравнения вида <b>ax² + bx + c = 0</b> без его решения. Он вычисляется по формуле <b>D = b² − 4ac</b>.</p>
+            <div style="border:2px solid var(--primary,#1cb0f6);background:var(--primary-soft,#e8f6ff);border-radius:16px;padding:15px 16px;margin:0 0 16px;">
+              <div style="font-weight:800;font-size:13px;color:var(--primary,#1cb0f6);margin-bottom:6px;">💡 Запомни</div>
+              <div style="font-weight:600;font-size:14px;color:var(--text,#2d3a45);line-height:1.5;">Если D&nbsp;&gt;&nbsp;0 — два корня; если D&nbsp;=&nbsp;0 — один корень; если D&nbsp;&lt;&nbsp;0 — действительных корней нет.</div>
+            </div>
+
+            <!-- files -->
+            <h2 style="font-family:'Baloo 2',sans-serif;font-weight:700;font-size:17px;color:var(--heading,#0b3a63);margin:20px 0 10px;">Материалы</h2>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <sc-for list="{{ lessonFiles }}" as="f" hint-placeholder-count="2">
+                <div style="display:flex;align-items:center;gap:12px;padding:12px;border:2px solid var(--border,#e6ebf0);border-radius:14px;cursor:pointer;">
+                  <div style="{{ f.iconStyle }}">{{ f.ext }}</div>
+                  <div style="flex:1;min-width:0;"><div style="font-weight:800;font-size:14px;color:var(--text,#2d3a45);">{{ f.name }}</div><div style="font-weight:600;font-size:12px;color:var(--text2,#8493a1);">{{ f.size }}</div></div>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary,#1cb0f6)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>
+                </div>
+              </sc-for>
+            </div>
+
+            <button onClick="{{ toggleDone }}" style="{{ doneBtnStyle }}" style-active="transform:translateY(3px);border-bottom-width:2px;">{{ doneBtnLabel }}</button>
+          </div>
+        </sc-if>
+
+        <!-- ---------- TEST INTRO ---------- -->
+        <sc-if value="{{ isTestIntro }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:6px 20px 28px;min-height:100%;display:flex;flex-direction:column;animation:bo-fade .3s both;">
+            <button onClick="{{ backToSubject }}" style="width:40px;height:40px;border-radius:12px;background:var(--surface2,#f3f6f9);border:2px solid var(--border,#e6ebf0);display:flex;align-items:center;justify-content:center;cursor:pointer;margin-bottom:20px;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text,#2d3a45)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+            </button>
+            <div style="width:72px;height:72px;border-radius:20px;background:var(--primary-soft,#e8f6ff);border:2px solid var(--primary,#1cb0f6);display:flex;align-items:center;justify-content:center;font-size:34px;margin-bottom:16px;">📝</div>
+            <div style="font-weight:700;font-size:13px;color:var(--primary,#1cb0f6);">{{ cur.name }}</div>
+            <h1 style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:26px;color:var(--heading,#0b3a63);margin:2px 0 20px;line-height:1.12;">{{ quizTitle }}</h1>
+
+            <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+              <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface2,#f3f6f9);border-radius:14px;"><span style="font-size:20px;">❓</span><span style="font-weight:700;font-size:14px;color:var(--text,#2d3a45);">{{ quizCount }} вопросов</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface2,#f3f6f9);border-radius:14px;"><span style="font-size:20px;">🎯</span><span style="font-weight:700;font-size:14px;color:var(--text,#2d3a45);">Только одна попытка</span></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface2,#f3f6f9);border-radius:14px;"><span style="font-size:20px;">⚡</span><span style="font-weight:700;font-size:14px;color:var(--text,#2d3a45);">Результат сразу после отправки</span></div>
+            </div>
+            <div style="flex:1;"></div>
+            <button onClick="{{ startQuestions }}" style="{{ primaryBtn }}" style-active="transform:translateY(3px);border-bottom-width:2px;">Начать тест</button>
+          </div>
+        </sc-if>
+
+        <!-- ---------- TEST QUESTION ---------- -->
+        <sc-if value="{{ isTestQ }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:6px 20px 24px;min-height:100%;display:flex;flex-direction:column;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+              <button onClick="{{ prevQ }}" style="width:38px;height:38px;border-radius:11px;background:var(--surface2,#f3f6f9);border:2px solid var(--border,#e6ebf0);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text,#2d3a45)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+              </button>
+              <div style="flex:1;height:11px;background:var(--surface2,#f3f6f9);border-radius:6px;overflow:hidden;"><div style="{{ q.progressStyle }}"></div></div>
+              <span style="font-weight:800;font-size:13px;color:var(--text2,#8493a1);white-space:nowrap;">{{ q.num }}/{{ q.total }}</span>
+            </div>
+
+            <div style="{{ q.typeBadge }}">{{ q.typeLabel }}</div>
+            <h1 key="{{ q.num }}" style="font-family:'Baloo 2',sans-serif;font-weight:700;font-size:23px;color:var(--heading,#0b3a63);margin:12px 0 22px;line-height:1.25;animation:bo-fade .25s both;">{{ q.text }}</h1>
+
+            <div style="display:flex;flex-direction:column;gap:12px;" key="{{ q.num }}">
+              <sc-for list="{{ q.options }}" as="o" hint-placeholder-count="4">
+                <div onClick="{{ o.select }}" style="{{ o.style }}" style-active="transform:scale(.99);">
+                  <div style="{{ o.indStyle }}">
+                    <sc-if value="{{ o.checked }}" hint-placeholder-val="{{ false }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4 10-10"/></svg></sc-if>
+                  </div>
+                  <span style="font-weight:700;font-size:15px;color:var(--text,#2d3a45);flex:1;">{{ o.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="flex:1;min-height:20px;"></div>
+            <button onClick="{{ nextQ }}" style="{{ nextBtnStyle }}" style-active="transform:translateY(3px);border-bottom-width:2px;">{{ nextBtnLabel }}</button>
+          </div>
+        </sc-if>
+
+        <!-- ---------- TEST RESULT ---------- -->
+        <sc-if value="{{ isTestResult }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:20px 20px 28px;animation:bo-fade .3s both;">
+            <div style="text-align:center;margin-bottom:8px;">
+              <div style="{{ result.ringStyle }}">
+                <div style="width:112px;height:112px;border-radius:50%;background:var(--bg,#fff);display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                  <div style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:40px;color:var(--result-color);line-height:1;">{{ result.percent }}%</div>
+                  <div style="font-weight:700;font-size:12px;color:var(--text2,#8493a1);">результат</div>
+                </div>
+              </div>
+              <div style="{{ result.statusStyle }}">{{ result.statusLabel }}</div>
+              <h1 style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:24px;color:var(--heading,#0b3a63);margin:14px 0 2px;">{{ result.headline }}</h1>
+              <div style="font-weight:600;font-size:14px;color:var(--text2,#8493a1);">Правильных ответов: {{ result.correct }} из {{ result.total }}</div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0;">
+              <div style="{{ statCard }}"><div style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:26px;color:var(--success,#58cc02);">{{ result.correct }}</div><div style="font-weight:700;font-size:13px;color:var(--text2,#8493a1);margin-top:3px;">Верно</div></div>
+              <div style="{{ statCard }}"><div style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:26px;color:var(--danger,#ff4b4b);">{{ result.wrong }}</div><div style="font-weight:700;font-size:13px;color:var(--text2,#8493a1);margin-top:3px;">Ошибок</div></div>
+            </div>
+
+            <h2 style="font-family:'Baloo 2',sans-serif;font-weight:700;font-size:18px;color:var(--heading,#0b3a63);margin:0 0 12px;">Разбор ответов</h2>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <sc-for list="{{ result.review }}" as="r" hint-placeholder-count="5">
+                <div style="{{ r.wrapStyle }}">
+                  <div style="display:flex;align-items:flex-start;gap:9px;">
+                    <div style="{{ r.markStyle }}">{{ r.mark }}</div>
+                    <div style="flex:1;">
+                      <div style="font-weight:800;font-size:14px;color:var(--text,#2d3a45);line-height:1.3;">{{ r.text }}</div>
+                      <sc-if value="{{ r.wrong }}" hint-placeholder-val="{{ false }}"><div style="font-weight:600;font-size:13px;color:var(--danger,#ff4b4b);margin-top:5px;">Ваш ответ: {{ r.your }}</div></sc-if>
+                      <div style="font-weight:700;font-size:13px;color:var(--success,#58cc02);margin-top:3px;">Верно: {{ r.answer }}</div>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <button onClick="{{ backToSubject }}" style="{{ primaryBtn }}" style-active="transform:translateY(3px);border-bottom-width:2px;">Вернуться к предмету</button>
+          </div>
+        </sc-if>
+
+        <!-- ---------- RESULTS TAB ---------- -->
+        <sc-if value="{{ isResults }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:8px 20px 24px;animation:bo-fade .3s both;">
+            <h1 style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:28px;color:var(--heading,#0b3a63);margin:6px 0 18px;">Результаты</h1>
+            <div style="display:flex;align-items:center;gap:18px;background:var(--primary-soft,#e8f6ff);border:2px solid var(--primary,#1cb0f6);border-radius:20px;padding:18px;margin-bottom:24px;">
+              <div style="{{ overallRingStyle }}">
+                <div style="width:66px;height:66px;border-radius:50%;background:var(--bg,#fff);display:flex;align-items:center;justify-content:center;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:22px;color:var(--primary,#1cb0f6);">{{ stats.avg }}%</div>
+              </div>
+              <div><div style="font-weight:800;font-size:16px;color:var(--text,#2d3a45);">Средний балл</div><div style="font-weight:600;font-size:13px;color:var(--text2,#8493a1);margin-top:2px;line-height:1.4;">по {{ resultsView.length }} пройденным тестам</div></div>
+            </div>
+            <h2 style="font-family:'Baloo 2',sans-serif;font-weight:700;font-size:18px;color:var(--heading,#0b3a63);margin:0 0 12px;">История тестов</h2>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <sc-for list="{{ resultsView }}" as="r" hint-placeholder-count="2">
+                <div style="{{ cardStyle }}">
+                  <div style="display:flex;align-items:center;gap:13px;">
+                    <div style="{{ r.badgeStyle }}">{{ r.initial }}</div>
+                    <div style="flex:1;min-width:0;"><div style="font-weight:800;font-size:15px;color:var(--text,#2d3a45);line-height:1.1;">{{ r.title }}</div><div style="font-weight:600;font-size:12px;color:var(--text2,#8493a1);margin-top:2px;">{{ r.subject }} · {{ r.date }}</div></div>
+                    <div style="text-align:right;"><div style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:22px;color:var(--success,#58cc02);line-height:1;">{{ r.score }}%</div><div style="font-weight:700;font-size:11px;color:var(--success,#58cc02);">Сдано</div></div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ---------- PROFILE ---------- -->
+        <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:8px 20px 24px;animation:bo-fade .3s both;">
+            <h1 style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:28px;color:var(--heading,#0b3a63);margin:6px 0 20px;">Профиль</h1>
+            <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:24px;">
+              <div style="width:88px;height:88px;border-radius:26px;background:var(--primary,#1cb0f6);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:38px;border-bottom:5px solid var(--primary-dark,#1799d6);">{{ studentInitial }}</div>
+              <div style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:22px;color:var(--text,#2d3a45);margin-top:14px;">{{ studentName }}</div>
+              <div style="font-weight:700;font-size:14px;color:var(--text2,#8493a1);">Группа {{ studentGroup }}</div>
+            </div>
+            <div style="{{ cardStyle }}">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0;">
+                <span style="font-weight:700;font-size:14px;color:var(--text2,#8493a1);">Student ID</span>
+                <span style="font-weight:800;font-size:15px;color:var(--text,#2d3a45);letter-spacing:.5px;">{{ studentId }}</span>
+              </div>
+              <div style="height:2px;background:var(--border,#e6ebf0);margin:12px 0;"></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0;">
+                <span style="font-weight:700;font-size:14px;color:var(--text2,#8493a1);">Предметов</span>
+                <span style="font-weight:800;font-size:15px;color:var(--text,#2d3a45);">{{ stats.subjects }}</span>
+              </div>
+            </div>
+
+            <h2 style="font-family:'Baloo 2',sans-serif;font-weight:700;font-size:17px;color:var(--heading,#0b3a63);margin:24px 0 12px;">Оформление</h2>
+            <div style="display:flex;gap:8px;background:var(--surface2,#f3f6f9);padding:5px;border-radius:15px;">
+              <button onClick="{{ setLight }}" style="{{ segLightStyle }}">☀️ Светлая</button>
+              <button onClick="{{ setDark }}" style="{{ segDarkStyle }}">🌙 Тёмная</button>
+            </div>
+
+            <button onClick="{{ logout }}" style="width:100%;margin-top:26px;padding:16px;border-radius:16px;background:none;border:2px solid var(--danger,#ff4b4b);color:var(--danger,#ff4b4b);font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;cursor:pointer;" style-active="transform:scale(.98);">Выйти из аккаунта</button>
+          </div>
+        </sc-if>
+
+      </div>
+      </sc-if>
+
+      <!-- ===== BOTTOM NAV ===== -->
+      <sc-if value="{{ showTabs }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:0 0 auto;height:74px;background:var(--nav,#fff);border-top:2px solid var(--border,#e6ebf0);display:flex;align-items:stretch;padding:0 8px 6px;">
+        <button onClick="{{ goHome }}" style="{{ navHomeStyle }}">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/></svg>
+          <span style="font-size:11px;font-weight:800;">Главная</span>
+        </button>
+        <button onClick="{{ goSubjects }}" style="{{ navSubjectsStyle }}">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5a2 2 0 0 1 2-2h11v16H7a2 2 0 0 0-2 2z"/><path d="M18 3v18"/></svg>
+          <span style="font-size:11px;font-weight:800;">Предметы</span>
+        </button>
+        <button onClick="{{ goResults }}" style="{{ navResultsStyle }}">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11"/><path d="M12 20V4"/><path d="M19 20v-6"/></svg>
+          <span style="font-size:11px;font-weight:800;">Результаты</span>
+        </button>
+        <button onClick="{{ goProfile }}" style="{{ navProfileStyle }}">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>
+          <span style="font-size:11px;font-weight:800;">Профиль</span>
+        </button>
+      </div>
+      </sc-if>
+
+    </div>
+  </div>
+
+  <!-- ============ SIDE HINT ============ -->
+  <div style="max-width:240px;color:var(--text2,#8493a1);font-family:'Nunito',sans-serif;">
+    <div style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:22px;color:var(--primary,#1cb0f6);">Bilim Ordo</div>
+    <div style="font-weight:700;font-size:13px;margin-top:4px;">Прототип мобильного приложения студента</div>
+    <div style="font-weight:600;font-size:12px;line-height:1.6;margin-top:14px;">Кликабельно: вход по ID → предмет → урок → тест с результатом. Тему можно переключить в профиле или иконкой на главной.</div>
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:960,&quot;height&quot;:920},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#1cb0f6&quot;,&quot;options&quot;:[&quot;#1cb0f6&quot;,&quot;#58cc02&quot;,&quot;#7c5cff&quot;,&quot;#ff7a3c&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Тема&quot;},&quot;defaultTheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;light&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Тема&quot;}}">
+class Component extends DCLogic {
+  state = {
+    screen: 'splash', theme: null, idInput: '', loginErr: false,
+    search: '', filter: 'Все', subjectId: 1, subTab: 'lessons',
+    lessonId: 12, done: { 11: true }, testId: 101, qIndex: 0, answers: {}, prevScreen: 'subject'
+  };
+
+  get accent() { return this.props.accent || '#1cb0f6'; }
+
+  DATA = [
+    { id: 1, name: 'Математика', teacher: 'Нурлан Абаев', color: '#1cb0f6', progress: 65, status: 'В процессе', desc: 'Алгебра и начала анализа, 10 класс',
+      lessons: [
+        { id: 11, title: 'Квадратные уравнения', desc: 'Стандартный вид и примеры', hasVideo: true, files: 2 },
+        { id: 12, title: 'Дискриминант', desc: 'Формула D = b² − 4ac и число корней', hasVideo: true, files: 2 },
+        { id: 13, title: 'Теорема Виета', desc: 'Связь корней и коэффициентов', hasVideo: false, files: 1 },
+        { id: 14, title: 'Графики парабол', desc: 'Построение и анализ функции', hasVideo: true, files: 0 } ],
+      tests: [
+        { id: 101, title: 'Дискриминант — проверка', questions: 5, status: 'available' },
+        { id: 103, title: 'Квадратные уравнения', questions: 8, status: 'passed', score: 80 },
+        { id: 102, title: 'Итоговый тест: уравнения', questions: 15, status: 'locked' } ] },
+    { id: 2, name: 'Физика', teacher: 'Гульнара Ким', color: '#8a5cf6', progress: 30, status: 'В процессе', desc: 'Механика и кинематика',
+      lessons: [
+        { id: 21, title: 'Механическое движение', desc: 'Система отсчёта, траектория', hasVideo: true, files: 1 },
+        { id: 22, title: 'Скорость и ускорение', desc: 'Равномерное и равноускоренное движение', hasVideo: true, files: 1 },
+        { id: 23, title: 'Второй закон Ньютона', desc: 'F = ma', hasVideo: false, files: 2 } ],
+      tests: [ { id: 201, title: 'Кинематика', questions: 6, status: 'locked' } ] },
+    { id: 3, name: 'История Казахстана', teacher: 'Ержан Оспанов', color: '#ff9600', progress: 100, status: 'Завершено', desc: 'От древних кочевников до независимости',
+      lessons: [
+        { id: 31, title: 'Древние кочевники', desc: 'Саки, гунны, усуни', hasVideo: true, files: 1 },
+        { id: 32, title: 'Казахское ханство', desc: 'Образование и расцвет', hasVideo: true, files: 2 },
+        { id: 33, title: 'Независимость', desc: '1991 год и современность', hasVideo: true, files: 1 } ],
+      tests: [ { id: 301, title: 'Итоговый тест', questions: 12, status: 'passed', score: 92 } ] },
+    { id: 4, name: 'Английский язык', teacher: 'Sarah Mitchell', color: '#58cc02', progress: 0, status: 'Не начато', desc: 'Grammar & vocabulary, intermediate',
+      lessons: [
+        { id: 41, title: 'Present Simple', desc: 'Утверждения, вопросы, отрицания', hasVideo: true, files: 1 },
+        { id: 42, title: 'Vocabulary: Family', desc: '40 новых слов', hasVideo: false, files: 1 } ],
+      tests: [ { id: 401, title: 'Grammar Basics', questions: 8, status: 'locked' } ] }
+  ];
+
+  QUIZ = { 101: [
+    { text: 'Как вычисляется дискриминант уравнения ax² + bx + c = 0?', type: 'single', options: [ { t: 'D = b² − 4ac', correct: true }, { t: 'D = 2ab − c', correct: false }, { t: 'D = a² + b²', correct: false }, { t: 'D = b² + 4ac', correct: false } ] },
+    { text: 'Сколько корней имеет уравнение, если D > 0?', type: 'single', options: [ { t: 'Два корня', correct: true }, { t: 'Один корень', correct: false }, { t: 'Нет корней', correct: false }, { t: 'Бесконечно много', correct: false } ] },
+    { text: 'Выберите все верные утверждения о дискриминанте', type: 'multi', options: [ { t: 'D = 0 → один корень', correct: true }, { t: 'D < 0 → нет действительных корней', correct: true }, { t: 'D > 0 → корней нет', correct: false }, { t: 'Дискриминант всегда положителен', correct: false } ] },
+    { text: 'Каковы корни уравнения x² − 5x + 6 = 0?', type: 'single', options: [ { t: 'x = 2 и x = 3', correct: true }, { t: 'x = 1 и x = 6', correct: false }, { t: 'x = −2 и x = −3', correct: false }, { t: 'x = 5 и x = 6', correct: false } ] },
+    { text: 'Чему равна сумма корней по теореме Виета (x₁ + x₂)?', type: 'single', options: [ { t: '−b/a', correct: true }, { t: 'c/a', correct: false }, { t: 'b/a', correct: false }, { t: '−c/a', correct: false } ] }
+  ] };
+
+  student = { name: 'Айдана Серикова', id: 'BO-2024-0876', group: '10-А' };
+
+  THEMES = {
+    light: { '--backdrop': '#e7edf3', '--bg': '#ffffff', '--surface': '#ffffff', '--surface2': '#f3f6f9', '--text': '#2d3a45', '--text2': '#8493a1', '--border': '#e6ebf0', '--primary-dark': '#1799d6', '--primary-soft': '#e8f6ff', '--success': '#58cc02', '--danger': '#ff4b4b', '--heading': '#0b3a63', '--nav': '#ffffff', '--bezel': '#101922' },
+    dark: { '--backdrop': '#070b11', '--bg': '#0e1725', '--surface': '#182636', '--surface2': '#1f2f42', '--text': '#eaf1f8', '--text2': '#8798a8', '--border': '#28394d', '--primary-dark': '#1585c0', '--primary-soft': '#123049', '--success': '#5fd80a', '--danger': '#ff5b5b', '--heading': '#8fd0ff', '--nav': '#111d2b', '--bezel': '#000000' }
+  };
+
+  componentDidMount() {
+    if (this.state.theme === null) this.setState({ theme: this.props.defaultTheme || 'light' });
+    this._t = setTimeout(() => this.setState(s => (s.screen === 'splash' ? { screen: 'login' } : {})), 1900);
+  }
+  componentWillUnmount() { clearTimeout(this._t); }
+
+  go(screen) { this.setState({ screen }); }
+  curSubject() { return this.DATA.find(s => s.id === this.state.subjectId) || this.DATA[0]; }
+  curLesson() { const s = this.curSubject(); return s.lessons.find(l => l.id === this.state.lessonId) || s.lessons[0]; }
+  quiz() { return this.QUIZ[this.state.testId] || this.QUIZ[101]; }
+  curQ() { return this.quiz()[this.state.qIndex]; }
+
+  pill(status) {
+    if (status === 'Завершено') return { color: '#3f9e00', background: 'rgba(88,204,2,.15)' };
+    if (status === 'В процессе') return { color: this.accent, background: 'rgba(28,176,246,.15)' };
+    return { color: '#8493a1', background: 'rgba(132,147,161,.15)' };
+  }
+  pillBox(status) { const p = this.pill(status); return { ...p, fontWeight: 800, fontSize: '11px', padding: '5px 10px', borderRadius: '999px', whiteSpace: 'nowrap', flex: '0 0 auto' }; }
+
+  selectOption(i) {
+    const q = this.curQ(), qi = this.state.qIndex, a = { ...this.state.answers };
+    if (q.type === 'single') a[qi] = i;
+    else { const arr = Array.isArray(a[qi]) ? [...a[qi]] : []; const p = arr.indexOf(i); if (p >= 0) arr.splice(p, 1); else arr.push(i); a[qi] = arr; }
+    this.setState({ answers: a });
+  }
+  isSel(qi, i) { const a = this.state.answers[qi]; return Array.isArray(a) ? a.includes(i) : a === i; }
+  correctIdx(q) { return q.options.map((o, i) => (o.correct ? i : -1)).filter(i => i >= 0); }
+  qCorrect(q, qi) {
+    const c = this.correctIdx(q), a = this.state.answers[qi];
+    if (q.type === 'single') return a === c[0];
+    const arr = Array.isArray(a) ? [...a].sort() : []; return arr.length === c.length && arr.every((v, k) => v === c.slice().sort()[k]);
+  }
+  labelsOf(q, idxs) { return idxs.map(i => q.options[i] ? q.options[i].t : '—').join(', ') || '—'; }
+
+  renderVals() {
+    const st = this.state, accent = this.accent;
+    const theme = st.theme || this.props.defaultTheme || 'light';
+    const vars = { ...this.THEMES[theme], '--primary': accent };
+    const isDark = theme === 'dark';
+
+    const wrapStyle = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '48px', padding: '40px', fontFamily: "'Nunito',sans-serif", transition: 'background .3s', ...vars };
+
+    const cardStyle = 'background:var(--surface,#fff);border:2px solid var(--border,#e6ebf0);border-radius:18px;padding:15px;cursor:pointer;transition:transform .1s;';
+    const statCard = 'background:var(--surface,#fff);border:2px solid var(--border,#e6ebf0);border-radius:16px;padding:15px;';
+    const primaryBtn = 'width:100%;padding:16px;border:none;border-radius:16px;background:var(--primary,#1cb0f6);color:#fff;border-bottom:5px solid var(--primary-dark,#1799d6);font-family:\'Nunito\',sans-serif;font-weight:800;font-size:16px;letter-spacing:.3px;cursor:pointer;transition:transform .08s;margin-top:8px;';
+    const loginInputStyle = { width: '100%', marginTop: '8px', padding: '15px 16px', border: '2px solid ' + (st.loginErr ? 'var(--danger,#ff4b4b)' : 'var(--border,#e6ebf0)'), borderRadius: '15px', background: 'var(--surface2,#f3f6f9)', fontFamily: "'Nunito',sans-serif", fontWeight: 700, fontSize: '16px', color: 'var(--text,#2d3a45)', outline: 'none', letterSpacing: '.5px' };
+
+    // subjects view
+    const badge = (color) => ({ width: '46px', height: '46px', borderRadius: '14px', background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: "'Baloo 2',sans-serif", fontWeight: 800, fontSize: '19px', flex: '0 0 auto' });
+    const bar = (pct, color) => ({ height: '100%', width: pct + '%', background: color, borderRadius: '6px' });
+    const subjectsView = this.DATA.map(s => ({
+      name: s.name, teacher: s.teacher, desc: s.desc, progress: s.progress, status: s.status, initial: s.name[0],
+      lessonsCount: s.lessons.length, testsCount: s.tests.length,
+      badgeStyle: badge(s.color), barStyle: bar(s.progress, s.color), pillStyle: this.pillBox(s.status),
+      open: () => this.setState({ subjectId: s.id, subTab: 'lessons', screen: 'subject' })
+    }));
+    const q = (st.search || '').toLowerCase();
+    let filtered = subjectsView.filter(s => (st.filter === 'Все' || s.status === st.filter) && (!q || s.name.toLowerCase().includes(q)));
+
+    const chips = ['Все', 'Не начато', 'В процессе', 'Завершено'].map(f => ({
+      label: f, set: () => this.setState({ filter: f }),
+      style: 'flex:0 0 auto;padding:9px 16px;border-radius:12px;border:2px solid ' + (st.filter === f ? 'var(--primary,#1cb0f6)' : 'var(--border,#e6ebf0)') + ';background:' + (st.filter === f ? 'var(--primary,#1cb0f6)' : 'transparent') + ';color:' + (st.filter === f ? '#fff' : 'var(--text2,#8493a1)') + ';font-family:\'Nunito\',sans-serif;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap;'
+    }));
+
+    // current subject detail
+    const cs = this.curSubject();
+    const lessonsView = cs.lessons.map((l, i) => {
+      const done = !!st.done[l.id];
+      return { title: l.title, desc: l.desc, num: i + 1, done, notDone: !done, hasVideo: l.hasVideo, hasFiles: l.files > 0, files: l.files,
+        iconStyle: { width: '44px', height: '44px', borderRadius: '13px', flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', background: done ? 'var(--success,#58cc02)' : 'var(--surface2,#f3f6f9)', color: done ? '#fff' : 'var(--text2,#8493a1)', border: done ? 'none' : '2px solid var(--border,#e6ebf0)' },
+        open: () => this.setState({ lessonId: l.id, screen: 'lesson' }) };
+    });
+    const testIcon = (t) => t.status === 'passed' ? '✓' : (t.status === 'locked' ? '🔒' : '📝');
+    const testsView = cs.tests.map(t => {
+      const locked = t.status === 'locked', passed = t.status === 'passed';
+      return { title: t.title, icon: testIcon(t),
+        meta: passed ? (t.questions + ' вопросов · пройден') : (t.questions + ' вопросов · 1 попытка'),
+        pillLabel: passed ? (t.score + '%') : (locked ? 'Недоступен' : 'Доступен'),
+        cardStyle: 'background:var(--surface,#fff);border:2px solid ' + (locked ? 'var(--border,#e6ebf0)' : 'var(--border,#e6ebf0)') + ';border-radius:18px;padding:15px;cursor:' + (locked ? 'default' : 'pointer') + ';opacity:' + (locked ? '.55' : '1') + ';',
+        iconStyle: { width: '44px', height: '44px', borderRadius: '13px', flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', background: passed ? 'rgba(88,204,2,.15)' : 'var(--primary-soft,#e8f6ff)' },
+        pillStyle: { fontWeight: 800, fontSize: '11px', padding: '5px 10px', borderRadius: '999px', whiteSpace: 'nowrap', flex: '0 0 auto', color: passed ? '#3f9e00' : (locked ? '#8493a1' : accent), background: passed ? 'rgba(88,204,2,.15)' : (locked ? 'rgba(132,147,161,.15)' : 'rgba(28,176,246,.15)') },
+        open: () => { if (!locked && !passed) this.setState({ testId: t.id, qIndex: 0, answers: {}, screen: 'testIntro' }); } };
+    });
+
+    // lesson files
+    const fileIcon = (ext, color) => ({ width: '42px', height: '42px', borderRadius: '11px', flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', background: color, color: '#fff', fontWeight: 800, fontSize: '11px', letterSpacing: '.3px' });
+    const lessonFiles = [
+      { name: 'Дискриминант — конспект.pdf', size: '1.2 МБ', ext: 'PDF', iconStyle: fileIcon('PDF', '#ff4b4b') },
+      { name: 'Примеры решений.docx', size: '480 КБ', ext: 'DOC', iconStyle: fileIcon('DOC', accent) }
+    ];
+    const lessonDone = !!st.done[st.lessonId];
+    const doneBtnStyle = lessonDone
+      ? 'width:100%;padding:16px;border:2px solid var(--success,#58cc02);border-radius:16px;background:rgba(88,204,2,.12);color:#3f9e00;font-family:\'Nunito\',sans-serif;font-weight:800;font-size:16px;cursor:pointer;margin-top:26px;'
+      : 'width:100%;padding:16px;border:none;border-radius:16px;background:var(--success,#58cc02);color:#fff;border-bottom:5px solid #3f9e00;font-family:\'Nunito\',sans-serif;font-weight:800;font-size:16px;cursor:pointer;margin-top:26px;transition:transform .08s;';
+
+    // quiz question
+    const quizArr = this.quiz(), qi = st.qIndex, cq = quizArr[qi];
+    const optBase = 'display:flex;align-items:center;gap:13px;padding:15px;border-radius:16px;cursor:pointer;transition:transform .08s;border:2px solid var(--border,#e6ebf0);background:var(--surface,#fff);';
+    const optSel = 'display:flex;align-items:center;gap:13px;padding:15px;border-radius:16px;cursor:pointer;transition:transform .08s;border:2px solid var(--primary,#1cb0f6);background:var(--primary-soft,#e8f6ff);';
+    const qView = {
+      num: qi + 1, total: quizArr.length, text: cq.text,
+      typeLabel: cq.type === 'multi' ? 'Несколько правильных ответов' : 'Один правильный ответ',
+      typeBadge: 'display:inline-block;align-self:flex-start;font-weight:800;font-size:11px;color:var(--primary,#1cb0f6);background:var(--primary-soft,#e8f6ff);padding:5px 11px;border-radius:999px;',
+      progressStyle: { height: '100%', width: Math.round(((qi + 1) / quizArr.length) * 100) + '%', background: accent, borderRadius: '6px', transition: 'width .3s' },
+      options: cq.options.map((o, i) => {
+        const sel = this.isSel(qi, i);
+        return { label: o.t, checked: sel, select: () => this.selectOption(i), style: sel ? optSel : optBase,
+          indStyle: { width: '26px', height: '26px', flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: cq.type === 'multi' ? '8px' : '50%', background: sel ? 'var(--primary,#1cb0f6)' : 'transparent', border: sel ? 'none' : '2.5px solid var(--border,#e6ebf0)' } };
+      })
+    };
+    const answered = st.answers[qi] !== undefined && !(Array.isArray(st.answers[qi]) && st.answers[qi].length === 0);
+    const lastQ = qi === quizArr.length - 1;
+    const nextBtnLabel = lastQ ? 'Завершить тест' : 'Далее';
+    const nextBtnStyle = 'width:100%;padding:16px;border:none;border-radius:16px;color:#fff;font-family:\'Nunito\',sans-serif;font-weight:800;font-size:16px;cursor:pointer;transition:transform .08s;' + (answered ? 'background:var(--primary,#1cb0f6);border-bottom:5px solid var(--primary-dark,#1799d6);' : 'background:var(--border,#e6ebf0);border-bottom:5px solid var(--surface2,#f3f6f9);pointer-events:none;opacity:.7;');
+
+    // result
+    let correct = 0; const review = quizArr.map((qq, k) => {
+      const ok = this.qCorrect(qq, k); if (ok) correct++;
+      const yourIdx = Array.isArray(st.answers[k]) ? st.answers[k] : (st.answers[k] === undefined ? [] : [st.answers[k]]);
+      return { text: qq.text, wrong: !ok, mark: ok ? '✓' : '✕', your: this.labelsOf(qq, yourIdx), answer: this.labelsOf(qq, this.correctIdx(qq)),
+        wrapStyle: { border: '2px solid var(--border,#e6ebf0)', borderLeft: '5px solid ' + (ok ? 'var(--success,#58cc02)' : 'var(--danger,#ff4b4b)'), borderRadius: '14px', padding: '13px 14px' },
+        markStyle: { width: '24px', height: '24px', flex: '0 0 auto', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: '13px', background: ok ? 'var(--success,#58cc02)' : 'var(--danger,#ff4b4b)' } };
+    });
+    const total = quizArr.length, percent = Math.round((correct / total) * 100), passed = percent >= 60;
+    const resultColor = passed ? 'var(--success,#58cc02)' : 'var(--danger,#ff4b4b)';
+    const result = { percent, correct, wrong: total - correct, total,
+      headline: passed ? 'Отличная работа!' : 'Есть над чем поработать',
+      statusLabel: passed ? 'Сдано' : 'Не сдано',
+      statusStyle: { display: 'inline-block', fontWeight: 800, fontSize: '13px', padding: '6px 16px', borderRadius: '999px', color: passed ? '#3f9e00' : '#ff4b4b', background: passed ? 'rgba(88,204,2,.15)' : 'rgba(255,75,75,.15)' },
+      ringStyle: { width: '140px', height: '140px', margin: '6px auto 16px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', '--result-color': resultColor, background: 'conic-gradient(' + resultColor + ' ' + percent + '%, var(--surface2,#f3f6f9) 0)' },
+      review };
+
+    // results tab
+    const resultsView = [];
+    this.DATA.forEach(s => s.tests.forEach(t => { if (t.status === 'passed') resultsView.push({ title: t.title, subject: s.name, score: t.score, initial: s.name[0], date: '4 июля', badgeStyle: badge(s.color) }); }));
+
+    // continue card
+    const cont = this.DATA[0];
+    const continueCard = { subject: cont.name, lesson: 'Дискриминант', initial: cont.name[0], progress: cont.progress, barStyle: { height: '100%', width: cont.progress + '%', background: accent, borderRadius: '6px' },
+      open: () => this.setState({ subjectId: 1, lessonId: 12, screen: 'lesson' }) };
+
+    // stats
+    let doneLessons = 0; this.DATA.forEach(s => s.lessons.forEach(l => { if (st.done[l.id]) doneLessons++; }));
+    doneLessons += 1 + 3; // physics 1 + history 3 baseline
+    let sumScore = 0, nScore = 0; this.DATA.forEach(s => s.tests.forEach(t => { if (t.status === 'passed') { sumScore += t.score; nScore++; } }));
+    const stats = { subjects: this.DATA.length, lessons: doneLessons, tests: 1, avg: nScore ? Math.round(sumScore / nScore) : 0 };
+    const overallRingStyle = { width: '88px', height: '88px', flex: '0 0 auto', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'conic-gradient(' + accent + ' ' + stats.avg + '%, rgba(28,176,246,.2) 0)' };
+
+    // nav styles
+    const navBtn = (active) => 'flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding-top:10px;cursor:pointer;font-family:\'Nunito\',sans-serif;color:' + (active ? 'var(--primary,#1cb0f6)' : 'var(--text2,#8493a1)') + ';';
+    const seg = (active) => 'flex:1;padding:12px;border-radius:11px;border:none;background:' + (active ? 'var(--surface,#fff)' : 'transparent') + ';color:' + (active ? 'var(--text,#2d3a45)' : 'var(--text2,#8493a1)') + ';font-family:\'Nunito\',sans-serif;font-weight:800;font-size:14px;cursor:pointer;box-shadow:' + (active ? '0 0 0 2px var(--primary,#1cb0f6) inset' : 'none') + ';';
+    const tab = (active) => 'flex:1;padding:11px;border-radius:11px;border:none;background:' + (active ? 'var(--surface,#fff)' : 'transparent') + ';color:' + (active ? 'var(--primary,#1cb0f6)' : 'var(--text2,#8493a1)') + ';font-family:\'Nunito\',sans-serif;font-weight:800;font-size:14px;cursor:pointer;box-shadow:' + (active ? '0 0 0 2px var(--primary,#1cb0f6) inset' : 'none') + ';';
+
+    return {
+      wrapStyle, cardStyle, statCard, primaryBtn, loginInputStyle,
+      isSplash: st.screen === 'splash', notSplash: st.screen !== 'splash',
+      isLogin: st.screen === 'login', isHome: st.screen === 'home', isSubjects: st.screen === 'subjects',
+      isSubject: st.screen === 'subject', isLesson: st.screen === 'lesson',
+      isTestIntro: st.screen === 'testIntro', isTestQ: st.screen === 'testQ', isTestResult: st.screen === 'testResult',
+      isResults: st.screen === 'results', isProfile: st.screen === 'profile',
+      showTabs: ['home', 'subjects', 'results', 'profile'].includes(st.screen),
+
+      idInput: st.idInput, loginErr: st.loginErr,
+      onIdInput: (e) => this.setState({ idInput: e.target.value, loginErr: false }),
+      doLogin: () => { if ((st.idInput || '').trim().length >= 3) this.setState({ screen: 'home' }); else this.setState({ loginErr: true }); },
+      fillDemo: () => this.setState({ idInput: this.student.id, loginErr: false }),
+
+      studentName: this.student.name, studentId: this.student.id, studentGroup: this.student.group, studentInitial: this.student.name[0],
+      stats, subjectsView, filteredSubjects: filtered, noResults: filtered.length === 0,
+      search: st.search, onSearch: (e) => this.setState({ search: e.target.value }),
+      filterChips: chips, continueCard, continueOpen: continueCard.open,
+
+      goHome: () => this.go('home'), goSubjects: () => this.go('subjects'), goResults: () => this.go('results'), goProfile: () => this.go('profile'),
+      navHomeStyle: navBtn(st.screen === 'home'), navSubjectsStyle: navBtn(st.screen === 'subjects'), navResultsStyle: navBtn(st.screen === 'results'), navProfileStyle: navBtn(st.screen === 'profile'),
+
+      toggleTheme: () => this.setState({ theme: isDark ? 'light' : 'dark' }),
+      themeIcon: isDark ? '☀️' : '🌙',
+      setLight: () => this.setState({ theme: 'light' }), setDark: () => this.setState({ theme: 'dark' }),
+      segLightStyle: seg(!isDark), segDarkStyle: seg(isDark),
+      logout: () => this.setState({ screen: 'login', idInput: '' }),
+
+      cur: { name: cs.name, teacher: cs.teacher, desc: cs.desc, progress: cs.progress, lessonsView, testsView, barStyleLight: { height: '100%', width: cs.progress + '%', background: '#fff', borderRadius: '6px' } },
+      subTabLessons: st.subTab === 'lessons', subTabTests: st.subTab === 'tests',
+      setLessonsTab: () => this.setState({ subTab: 'lessons' }), setTestsTab: () => this.setState({ subTab: 'tests' }),
+      tabLessonsStyle: tab(st.subTab === 'lessons'), tabTestsStyle: tab(st.subTab === 'tests'),
+
+      lesson: { title: this.curLesson().title }, lessonFiles,
+      backToSubject: () => this.setState({ screen: 'subject' }),
+      toggleDone: () => { const d = { ...st.done }; d[st.lessonId] = !d[st.lessonId]; this.setState({ done: d }); },
+      doneBtnLabel: lessonDone ? '✓ Урок изучен' : 'Отметить как изучено', doneBtnStyle,
+
+      quizTitle: (cs.tests.find(t => t.id === st.testId) || {}).title || 'Тест', quizCount: quizArr.length,
+      startQuestions: () => this.setState({ screen: 'testQ', qIndex: 0 }),
+      q: qView,
+      prevQ: () => this.setState(s => ({ qIndex: Math.max(0, s.qIndex - 1) })),
+      nextQ: () => { if (!answered) return; if (lastQ) this.setState({ screen: 'testResult' }); else this.setState(s => ({ qIndex: s.qIndex + 1 })); },
+      nextBtnLabel, nextBtnStyle,
+
+      result, resultsView, overallRingStyle
+    };
+  }
+}
+</script>
+</body>
+</html>
