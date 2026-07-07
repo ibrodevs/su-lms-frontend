@@ -15,88 +15,112 @@ function LoginPage({ onLogin }) {
   const [value, setValue] = useState(student.id);
 
   return (
-    <main className="login-shell">
-      <section className="login-panel">
-        <div className="brand-mark">B</div>
-        <p className="eyebrow">Frontend demo</p>
-        <h1>Bilim Ordo</h1>
-        <p className="muted">
-          Учебная платформа с предметами, уроками, материалами и тестами внутри каждого урока.
-        </p>
-        <label htmlFor="studentId">Student ID</label>
-        <input
-          id="studentId"
-          value={value}
-          onChange={(event) => setValue(event.target.value)}
-          placeholder="BO-2024-XXXX"
-        />
-        <button
-          className="primary-action"
-          type="button"
-          onClick={() => onLogin(value.trim() || student.id)}
-        >
-          Войти в демо
-        </button>
+    <main className="presentation-stage">
+      <section className="phone-frame" aria-label="Bilim Ordo login demo">
+        <div className="phone-screen login-phone-screen">
+          <section className="login-panel">
+            <div className="brand-mark">B</div>
+            <p className="eyebrow">Frontend demo</p>
+            <h1>Bilim Ordo</h1>
+            <p className="muted">
+              Учебная платформа с предметами, уроками, материалами и тестами внутри каждого урока.
+            </p>
+            <label htmlFor="studentId">Student ID</label>
+            <input
+              id="studentId"
+              value={value}
+              onChange={(event) => setValue(event.target.value)}
+              placeholder="BO-2024-XXXX"
+            />
+            <button
+              className="primary-action"
+              type="button"
+              onClick={() => onLogin(value.trim() || student.id)}
+            >
+              Войти в демо
+            </button>
+          </section>
+        </div>
       </section>
+      <aside className="demo-caption">
+        <span className="eyebrow">Bilim Ordo</span>
+        <h1>Демо мобильного приложения студента</h1>
+        <p>Откройте демо-ID и покажите полный путь: предмет, урок, материал, тест и результат.</p>
+      </aside>
     </main>
   );
 }
 
 function Shell({ onLogout }) {
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <Link className="sidebar-brand" to="/">
-          <span className="brand-mark small">B</span>
-          <span>
-            <strong>Bilim Ordo</strong>
-            <small>{student.group}</small>
-          </span>
-        </Link>
-        <nav>
-          <NavLink to="/" end>
-            <LayoutDashboard size={18} /> Главная
-          </NavLink>
-          <NavLink to="/subjects">
-            <BookOpen size={18} /> Предметы
-          </NavLink>
-          <NavLink to="/tests">
-            <ListChecks size={18} /> Тесты
-          </NavLink>
-        </nav>
-        <button className="ghost-action" type="button" onClick={onLogout}>
-          <LogOut size={18} /> Выйти
-        </button>
+    <main className="presentation-stage">
+      <section className="phone-frame" aria-label="Bilim Ordo mobile demo">
+        <div className="phone-screen">
+          <div className="app-shell">
+            <aside className="sidebar">
+              <Link className="sidebar-brand" to="/">
+                <span className="brand-mark small">B</span>
+                <span>
+                  <strong>Bilim Ordo</strong>
+                  <small>{student.group}</small>
+                </span>
+              </Link>
+              <nav>
+                <NavLink to="/" end>
+                  <LayoutDashboard size={18} /> Главная
+                </NavLink>
+                <NavLink to="/subjects">
+                  <BookOpen size={18} /> Предметы
+                </NavLink>
+                <NavLink to="/tests">
+                  <ListChecks size={18} /> Тесты
+                </NavLink>
+              </nav>
+              <button className="ghost-action" type="button" onClick={onLogout}>
+                <LogOut size={18} /> Выйти
+              </button>
+            </aside>
+            <div className="content-shell">
+              <header className="topbar">
+                <div>
+                  <span className="eyebrow">Студент</span>
+                  <strong>{student.name}</strong>
+                </div>
+                <div className="topbar-pill">
+                  <GraduationCap size={18} /> {student.id}
+                </div>
+              </header>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/subjects" element={<SubjectsPage />} />
+                <Route path="/subjects/:subjectId" element={<SubjectDetailPage />} />
+                <Route path="/subjects/:subjectId/lessons/:lessonId" element={<LessonDetailPage />} />
+                <Route
+                  path="/subjects/:subjectId/lessons/:lessonId/materials/:materialId"
+                  element={<MaterialReaderPage />}
+                />
+                <Route path="/subjects/:subjectId/lessons/:lessonId/quiz" element={<LessonQuizPage />} />
+                <Route
+                  path="/subjects/:subjectId/lessons/:lessonId/quiz/result"
+                  element={<QuizResultPage />}
+                />
+                <Route path="/tests" element={<QuickTestsPage />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </div>
+          </div>
+        </div>
+      </section>
+      <aside className="demo-caption">
+        <span className="eyebrow">Bilim Ordo</span>
+        <h1>Демо мобильного приложения студента</h1>
+        <p>
+          Внутри телефона остались новые уроки, YouTube-видео, конспекты,
+          PDF-материалы, тесты после уроков и прогресс в localStorage.
+        </p>
+        <p>Кликабельно: вход по ID, предметы, урок, материал, тест, результат.</p>
       </aside>
-      <div className="content-shell">
-        <header className="topbar">
-          <div>
-            <span className="eyebrow">Студент</span>
-            <strong>{student.name}</strong>
-          </div>
-          <div className="topbar-pill">
-            <GraduationCap size={18} /> {student.id}
-          </div>
-        </header>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/subjects" element={<SubjectsPage />} />
-          <Route path="/subjects/:subjectId" element={<SubjectDetailPage />} />
-          <Route path="/subjects/:subjectId/lessons/:lessonId" element={<LessonDetailPage />} />
-          <Route
-            path="/subjects/:subjectId/lessons/:lessonId/materials/:materialId"
-            element={<MaterialReaderPage />}
-          />
-          <Route path="/subjects/:subjectId/lessons/:lessonId/quiz" element={<LessonQuizPage />} />
-          <Route
-            path="/subjects/:subjectId/lessons/:lessonId/quiz/result"
-            element={<QuizResultPage />}
-          />
-          <Route path="/tests" element={<QuickTestsPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </div>
-    </div>
+    </main>
   );
 }
 
