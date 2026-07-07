@@ -3,7 +3,7 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/((?!materials/|images/).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
