@@ -1,6 +1,6 @@
-# Bilim Ordo
+# SU LMS
 
-React + Vite frontend demo for a student learning platform.
+React + Vite frontend for the Salymbekov University Learning Management System.
 
 ## Features
 
