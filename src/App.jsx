@@ -16,21 +16,21 @@ function LoginPage({ onLogin }) {
 
   return (
     <main className="presentation-stage">
-      <section className="phone-frame" aria-label="Bilim Ordo login demo">
+      <section className="phone-frame" aria-label="SU LMS login demo">
         <div className="phone-screen login-phone-screen">
           <section className="login-panel">
-            <div className="brand-mark">B</div>
+            <div className="brand-mark">SU</div>
             <p className="eyebrow">Frontend demo</p>
-            <h1>Bilim Ordo</h1>
+            <h1>SU LMS</h1>
             <p className="muted">
-              Учебная платформа с предметами, уроками, материалами и тестами внутри каждого урока.
+              Учебная платформа Salymbekov University с предметами, уроками, материалами и тестами.
             </p>
             <label htmlFor="studentId">Student ID</label>
             <input
               id="studentId"
               value={value}
               onChange={(event) => setValue(event.target.value)}
-              placeholder="BO-2024-XXXX"
+              placeholder="SU-2024-XXXX"
             />
             <button
               className="primary-action"
@@ -43,7 +43,7 @@ function LoginPage({ onLogin }) {
         </div>
       </section>
       <aside className="demo-caption">
-        <span className="eyebrow">Bilim Ordo</span>
+        <span className="eyebrow">SU LMS</span>
         <h1>Демо мобильного приложения студента</h1>
         <p>Откройте демо-ID и покажите полный путь: предмет, урок, материал, тест и результат.</p>
       </aside>
@@ -54,14 +54,14 @@ function LoginPage({ onLogin }) {
 function Shell({ onLogout }) {
   return (
     <main className="presentation-stage">
-      <section className="phone-frame" aria-label="Bilim Ordo mobile demo">
+      <section className="phone-frame" aria-label="SU LMS mobile demo">
         <div className="phone-screen">
           <div className="app-shell">
             <aside className="sidebar">
               <Link className="sidebar-brand" to="/">
-                <span className="brand-mark small">B</span>
+                <span className="brand-mark small">SU</span>
                 <span>
-                  <strong>Bilim Ordo</strong>
+                  <strong>SU LMS</strong>
                   <small>{student.group}</small>
                 </span>
               </Link>
@@ -112,10 +112,10 @@ function Shell({ onLogout }) {
         </div>
       </section>
       <aside className="demo-caption">
-        <span className="eyebrow">Bilim Ordo</span>
+        <span className="eyebrow">SU LMS</span>
         <h1>Демо мобильного приложения студента</h1>
         <p>
-          Внутри телефона остались новые уроки, YouTube-видео, конспекты,
+          Внутри телефона доступны уроки, YouTube-видео, конспекты,
           PDF-материалы, тесты после уроков и прогресс в localStorage.
         </p>
         <p>Кликабельно: вход по ID, предметы, урок, материал, тест, результат.</p>
@@ -125,7 +125,7 @@ function Shell({ onLogout }) {
 }
 
 export default function App() {
-  const [studentId, setStudentId] = useState(() => localStorage.getItem("bilim-student-id"));
+  const [studentId, setStudentId] = useState(() => localStorage.getItem("su-lms-student-id"));
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -136,7 +136,7 @@ export default function App() {
     return (
       <LoginPage
         onLogin={(id) => {
-          localStorage.setItem("bilim-student-id", id);
+          localStorage.setItem("su-lms-student-id", id);
           setStudentId(id);
         }}
       />
@@ -146,7 +146,7 @@ export default function App() {
   return (
     <Shell
       onLogout={() => {
-        localStorage.removeItem("bilim-student-id");
+        localStorage.removeItem("su-lms-student-id");
         setStudentId(null);
         navigate("/");
       }}
