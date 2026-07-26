@@ -1,155 +1,43 @@
-import { useEffect, useState } from "react";
-import { Link, NavLink, Navigate, Route, Routes, useNavigate } from "react-router-dom";
-import { BookOpen, GraduationCap, LayoutDashboard, ListChecks, LogOut } from "lucide-react";
-import { student } from "./data/mockData";
-import HomePage from "./pages/HomePage";
-import SubjectsPage from "./pages/SubjectsPage";
-import SubjectDetailPage from "./pages/SubjectDetailPage";
-import LessonDetailPage from "./pages/LessonDetailPage";
-import MaterialReaderPage from "./pages/MaterialReaderPage";
-import LessonQuizPage from "./pages/LessonQuizPage";
-import QuizResultPage from "./pages/QuizResultPage";
-import QuickTestsPage from "./pages/QuickTestsPage";
-
-function LoginPage({ onLogin }) {
-  const [value, setValue] = useState(student.id);
-
-  return (
-    <main className="presentation-stage">
-      <section className="phone-frame" aria-label="SU LMS login demo">
-        <div className="phone-screen login-phone-screen">
-          <section className="login-panel">
-            <div className="brand-mark">SU</div>
-            <p className="eyebrow">Frontend demo</p>
-            <h1>SU LMS</h1>
-            <p className="muted">
-              Учебная платформа Salymbekov University с предметами, уроками, материалами и тестами.
-            </p>
-            <label htmlFor="studentId">Student ID</label>
-            <input
-              id="studentId"
-              value={value}
-              onChange={(event) => setValue(event.target.value)}
-              placeholder="SU-2024-XXXX"
-            />
-            <button
-              className="primary-action"
-              type="button"
-              onClick={() => onLogin(value.trim() || student.id)}
-            >
-              Войти в демо
-            </button>
-          </section>
-        </div>
-      </section>
-      <aside className="demo-caption">
-        <span className="eyebrow">SU LMS</span>
-        <h1>Демо мобильного приложения студента</h1>
-        <p>Откройте демо-ID и покажите полный путь: предмет, урок, материал, тест и результат.</p>
-      </aside>
-    </main>
-  );
-}
-
-function Shell({ onLogout }) {
-  return (
-    <main className="presentation-stage">
-      <section className="phone-frame" aria-label="SU LMS mobile demo">
-        <div className="phone-screen">
-          <div className="app-shell">
-            <aside className="sidebar">
-              <Link className="sidebar-brand" to="/">
-                <span className="brand-mark small">SU</span>
-                <span>
-                  <strong>SU LMS</strong>
-                  <small>{student.group}</small>
-                </span>
-              </Link>
-              <nav>
-                <NavLink to="/" end>
-                  <LayoutDashboard size={18} /> Главная
-                </NavLink>
-                <NavLink to="/subjects">
-                  <BookOpen size={18} /> Предметы
-                </NavLink>
-                <NavLink to="/tests">
-                  <ListChecks size={18} /> Тесты
-                </NavLink>
-              </nav>
-              <button className="ghost-action" type="button" onClick={onLogout}>
-                <LogOut size={18} /> Выйти
-              </button>
-            </aside>
-            <div className="content-shell">
-              <header className="topbar">
-                <div>
-                  <span className="eyebrow">Студент</span>
-                  <strong>{student.name}</strong>
-                </div>
-                <div className="topbar-pill">
-                  <GraduationCap size={18} /> {student.id}
-                </div>
-              </header>
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/subjects" element={<SubjectsPage />} />
-                <Route path="/subjects/:subjectId" element={<SubjectDetailPage />} />
-                <Route path="/subjects/:subjectId/lessons/:lessonId" element={<LessonDetailPage />} />
-                <Route
-                  path="/subjects/:subjectId/lessons/:lessonId/materials/:materialId"
-                  element={<MaterialReaderPage />}
-                />
-                <Route path="/subjects/:subjectId/lessons/:lessonId/quiz" element={<LessonQuizPage />} />
-                <Route
-                  path="/subjects/:subjectId/lessons/:lessonId/quiz/result"
-                  element={<QuizResultPage />}
-                />
-                <Route path="/tests" element={<QuickTestsPage />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </div>
-          </div>
-        </div>
-      </section>
-      <aside className="demo-caption">
-        <span className="eyebrow">SU LMS</span>
-        <h1>Демо мобильного приложения студента</h1>
-        <p>
-          Внутри телефона доступны уроки, YouTube-видео, конспекты,
-          PDF-материалы, тесты после уроков и прогресс в localStorage.
-        </p>
-        <p>Кликабельно: вход по ID, предметы, урок, материал, тест, результат.</p>
-      </aside>
-    </main>
-  );
-}
+import { Redirect, Route, Switch } from "react-router-dom";
+import AppLayout from "./layouts/AppLayout";
+import AuthLayout from "./layouts/AuthLayout";
+import ForbiddenPage from "./pages/errors/ForbiddenPage";
+import NotFoundPage from "./pages/errors/NotFoundPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import LoginPage from "./pages/auth/LoginPage";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
+import ProfilePage from "./pages/profile/ProfilePage";
 
 export default function App() {
-  const [studentId, setStudentId] = useState(() => localStorage.getItem("su-lms-student-id"));
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    document.documentElement.lang = "ru";
-  }, []);
-
-  if (!studentId) {
-    return (
-      <LoginPage
-        onLogin={(id) => {
-          localStorage.setItem("su-lms-student-id", id);
-          setStudentId(id);
-        }}
-      />
-    );
-  }
-
   return (
-    <Shell
-      onLogout={() => {
-        localStorage.removeItem("su-lms-student-id");
-        setStudentId(null);
-        navigate("/");
-      }}
-    />
+    <Switch>
+      <Route path="/login">
+        <AuthLayout>
+          <LoginPage />
+        </AuthLayout>
+      </Route>
+      <Route path="/forgot-password">
+        <AuthLayout>
+          <ForgotPasswordPage />
+        </AuthLayout>
+      </Route>
+      <Route path="/reset-password">
+        <AuthLayout>
+          <ResetPasswordPage />
+        </AuthLayout>
+      </Route>
+      <Route path="/profile">
+        <AppLayout>
+          {({ openLogout }) => <ProfilePage openLogout={openLogout} />}
+        </AppLayout>
+      </Route>
+      <Route path="/403">
+        <ForbiddenPage />
+      </Route>
+      <Redirect exact from="/" to="/login" />
+      <Route>
+        <NotFoundPage />
+      </Route>
+    </Switch>
   );
 }
