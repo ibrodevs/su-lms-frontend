@@ -72,7 +72,11 @@ export const mockLessons: Lesson[] = [
 \`course-topic-task-v2.pdf\`
 
 PDF подходит для финальной передачи, DOCX — для редактирования, PPTX — для презентаций.`,
-    materialIds: ["dl-file-formats", "dl-presentation-template"],
+    materialIds: [
+      "dl-file-formats",
+      "dl-presentation-template",
+      "dl-legacy-archive",
+    ],
     requiresLessonId: "dl-security",
     video: {
       kind: "placeholder",

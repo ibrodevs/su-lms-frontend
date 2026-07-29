@@ -8,7 +8,8 @@ export type MaterialType =
   | "audio"
   | "image"
   | "external"
-  | "library";
+  | "library"
+  | "other";
 export type LessonContentType = "video" | "youtube" | "rich-text" | "mixed";
 export type CalendarEventType =
   | "course-start"
@@ -103,7 +104,12 @@ export interface Material {
   duration?: string;
   url?: string;
   downloadAllowed: boolean;
-  availability: "available" | "unavailable" | "deleted" | "error";
+  availability:
+    | "available"
+    | "unavailable"
+    | "deleted"
+    | "error"
+    | "unsupported";
 }
 
 export interface CalendarEvent {
@@ -134,5 +140,6 @@ export interface CourseProgressSummary {
   total: number;
   percent: number;
   status: CourseStatus;
-  currentLessonId: string | null;
+  continuationLessonId: string | null;
+  lastOpenedLessonId: string | null;
 }

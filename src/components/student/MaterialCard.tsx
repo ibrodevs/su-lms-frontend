@@ -2,6 +2,7 @@ import {
   ExternalLink,
   FileAudio,
   FileImage,
+  FileQuestion,
   FileText,
   Library,
   Presentation,
@@ -17,6 +18,7 @@ const icons = {
   image: FileImage,
   external: ExternalLink,
   library: Library,
+  other: FileQuestion,
 } satisfies Record<Material["type"], typeof FileText>;
 
 const labels: Record<Material["type"], string> = {
@@ -27,6 +29,7 @@ const labels: Record<Material["type"], string> = {
   image: "Изображение",
   external: "Внешняя ссылка",
   library: "Библиотека",
+  other: "Другой формат",
 };
 
 interface MaterialCardProps {

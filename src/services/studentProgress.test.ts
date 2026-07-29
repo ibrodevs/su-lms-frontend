@@ -81,7 +81,10 @@ describe("student progress service", () => {
     const state = getProgressSnapshot();
     expect(state.lastLessonId).toBe("dl-security");
     expect(getNextAvailableLesson(course, state)?.id).toBe("dl-files");
-    expect(getCourseProgress(course, state).currentLessonId).toBe("dl-files");
+    expect(getCourseProgress(course, state)).toMatchObject({
+      continuationLessonId: "dl-files",
+      lastOpenedLessonId: "dl-security",
+    });
   });
 
   it("keeps a completed course at one hundred percent", () => {
@@ -115,5 +118,20 @@ describe("student progress service", () => {
     for (const material of availableOfficeDocuments) {
       expect(material.url).toMatch(/^\/materials\/.+\.(docx|pptx)$/);
     }
+  });
+
+  it("includes an explicit unsupported material state", () => {
+    const unsupportedMaterial = mockMaterials.find(
+      (material) => material.availability === "unsupported",
+    );
+
+    expect(unsupportedMaterial).toMatchObject({
+      id: "dl-legacy-archive",
+      type: "other",
+      availability: "unsupported",
+    });
+    expect(requireLesson("dl-files").materialIds).toContain(
+      "dl-legacy-archive",
+    );
   });
 });

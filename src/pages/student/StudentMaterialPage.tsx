@@ -4,6 +4,7 @@ import {
   ExternalLink,
   FileAudio,
   FileImage,
+  FileQuestion,
   FileText,
   Library,
   Presentation,
@@ -29,6 +30,7 @@ const icons = {
   image: FileImage,
   external: ExternalLink,
   library: Library,
+  other: FileQuestion,
 } satisfies Record<Material["type"], typeof FileText>;
 
 const typeLabels: Record<Material["type"], string> = {
@@ -39,6 +41,7 @@ const typeLabels: Record<Material["type"], string> = {
   image: "Изображение",
   external: "Внешний ресурс",
   library: "Электронная библиотека",
+  other: "Другой формат",
 };
 
 function getDomain(url?: string): string {
@@ -97,6 +100,11 @@ export default function StudentMaterialPage() {
       title: "Ошибка загрузки",
       description:
         "Preview не удалось загрузить. Попробуйте открыть материал позже.",
+    },
+    unsupported: {
+      title: "Формат не поддерживается",
+      description:
+        "Этот тип файла нельзя открыть в текущей версии кабинета. Обратитесь к преподавателю за материалом в поддерживаемом формате.",
     },
   } as const;
 

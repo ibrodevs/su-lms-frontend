@@ -77,6 +77,12 @@ export default function StudentDashboardPage() {
   const continueProgress = continueCourse
     ? getCourseProgress(continueCourse, state)
     : null;
+  const continueModule =
+    continueCourse && continueLesson
+      ? (continueCourse.modules.find(
+          (module) => module.id === continueLesson.moduleId,
+        ) ?? null)
+      : null;
   const upcomingEvents = [...mockCalendarEvents]
     .sort(
       (a, b) =>
@@ -156,6 +162,12 @@ export default function StudentDashboardPage() {
               <p className="mt-1 text-sm font-bold text-ash">
                 {continueCourse.title} · {continueCourse.code}
               </p>
+              <p className="mt-1 text-xs font-bold text-ash">
+                Модуль:{" "}
+                <strong className="text-graphite">
+                  {continueModule?.title ?? "Не указан"}
+                </strong>
+              </p>
               <div className="mt-4 max-w-xl">
                 <CourseProgress percent={continueProgress.percent} />
               </div>
@@ -188,7 +200,7 @@ export default function StudentDashboardPage() {
           </Link>
         </div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {courseSummaries.slice(0, 3).map(({ course, progress }) => (
+          {activeCourses.slice(0, 3).map(({ course, progress }) => (
             <CourseCard course={course} key={course.id} progress={progress} />
           ))}
         </div>

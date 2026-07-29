@@ -132,8 +132,11 @@ export default function StudentProgressPage() {
         {summaries.map(({ course, progress }) => {
           const isExpanded = expandedCourseId === course.id;
           const lessons = getLessonsForCourse(course);
-          const currentLesson = progress.currentLessonId
-            ? getLessonById(progress.currentLessonId)
+          const currentLesson = progress.continuationLessonId
+            ? getLessonById(progress.continuationLessonId)
+            : null;
+          const lastOpenedLesson = progress.lastOpenedLessonId
+            ? getLessonById(progress.lastOpenedLessonId)
             : null;
           const currentModule = currentLesson
             ? course.modules.find(
@@ -171,9 +174,9 @@ export default function StudentProgressPage() {
                     </strong>
                   </p>
                   <p className="mt-1 text-xs text-ash">
-                    Текущий урок:{" "}
+                    Последний открытый урок:{" "}
                     <strong className="text-graphite">
-                      {currentLesson?.title ?? "Курс завершён"}
+                      {lastOpenedLesson?.title ?? "Нет активности"}
                     </strong>
                   </p>
                 </div>

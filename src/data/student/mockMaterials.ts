@@ -64,6 +64,18 @@ export const mockMaterials: Material[] = [
     availability: "available",
   },
   {
+    id: "dl-legacy-archive",
+    courseId: "digital-literacy",
+    lessonId: "dl-files",
+    title: "Архив старого учебного пакета",
+    description:
+      "Материал сохранён в формате, который не поддерживается текущей версией кабинета.",
+    type: "other",
+    size: "320 KB",
+    downloadAllowed: false,
+    availability: "unsupported",
+  },
+  {
     id: "dl-collaboration-audio",
     courseId: "digital-literacy",
     lessonId: "dl-collaboration",
