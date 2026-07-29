@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   getCourseById,
   getLessonById,
@@ -11,6 +11,7 @@ import {
   getProgressSnapshot,
   getResolvedLessonStatus,
   markLessonCompleted,
+  markLessonStarted,
   resetStudentProgress,
 } from "./studentProgress";
 
@@ -29,6 +30,10 @@ function requireLesson(lessonId: string) {
 describe("student progress service", () => {
   beforeEach(() => {
     resetStudentProgress();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("builds the main course from eight ordered lessons", () => {
@@ -84,6 +89,30 @@ describe("student progress service", () => {
     expect(getCourseProgress(course, state)).toMatchObject({
       continuationLessonId: "dl-files",
       lastOpenedLessonId: "dl-security",
+    });
+  });
+
+  it("tracks a reopened completed lesson without resetting its completion", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-30T10:00:00.000Z"));
+
+    const course = requireCourse("digital-literacy");
+    const completedLesson = requireLesson("dl-intro");
+    const completedAt =
+      getProgressSnapshot().lessons[completedLesson.id]?.completedAt;
+
+    markLessonStarted(completedLesson);
+
+    const state = getProgressSnapshot();
+    expect(state.lastLessonId).toBe("dl-intro");
+    expect(state.lessons["dl-intro"]).toMatchObject({
+      status: "completed",
+      completedAt,
+      updatedAt: "2026-07-30T10:00:00.000Z",
+    });
+    expect(getCourseProgress(course, state)).toMatchObject({
+      continuationLessonId: "dl-security",
+      lastOpenedLessonId: "dl-intro",
     });
   });
 

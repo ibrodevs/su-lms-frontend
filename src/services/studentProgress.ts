@@ -149,7 +149,10 @@ export function markLessonStarted(lesson: Lesson): void {
   const previous = currentState.lessons[lesson.id];
   const nextRecord =
     previous?.status === "completed"
-      ? previous
+      ? {
+          ...previous,
+          updatedAt: new Date().toISOString(),
+        }
       : makeRecord(lesson.id, "in-progress", previous);
 
   persistState({
