@@ -3,6 +3,7 @@ import {
   getCourseById,
   getLessonById,
   getLessonsForCourse,
+  mockMaterials,
 } from "./studentCatalog";
 import {
   getCourseProgress,
@@ -71,6 +72,18 @@ describe("student progress service", () => {
     );
   });
 
+  it("continues with the next unlocked lesson after completing the active lesson", () => {
+    const course = requireCourse("digital-literacy");
+    const securityLesson = requireLesson("dl-security");
+
+    markLessonCompleted(securityLesson);
+
+    const state = getProgressSnapshot();
+    expect(state.lastLessonId).toBe("dl-security");
+    expect(getNextAvailableLesson(course, state)?.id).toBe("dl-files");
+    expect(getCourseProgress(course, state).currentLessonId).toBe("dl-files");
+  });
+
   it("keeps a completed course at one hundred percent", () => {
     const course = requireCourse("kyrgyz-history");
 
@@ -80,5 +93,27 @@ describe("student progress service", () => {
       percent: 100,
       status: "completed",
     });
+  });
+
+  it("keeps every course lesson linked to an existing module", () => {
+    const course = requireCourse("digital-literacy");
+    const moduleIds = new Set(course.modules.map((module) => module.id));
+
+    for (const lesson of getLessonsForCourse(course)) {
+      expect(moduleIds.has(lesson.moduleId)).toBe(true);
+    }
+  });
+
+  it("provides a file URL for every available office document", () => {
+    const availableOfficeDocuments = mockMaterials.filter(
+      (material) =>
+        material.availability === "available" &&
+        (material.type === "docx" || material.type === "pptx"),
+    );
+
+    expect(availableOfficeDocuments.length).toBeGreaterThan(0);
+    for (const material of availableOfficeDocuments) {
+      expect(material.url).toMatch(/^\/materials\/.+\.(docx|pptx)$/);
+    }
   });
 });

@@ -137,7 +137,7 @@ PDF подходит для финальной передачи, DOCX — для
   {
     id: "dl-presentation",
     courseId: "digital-literacy",
-    moduleId: "dl-communication",
+    moduleId: "dl-research-module",
     topicId: "dl-presenting",
     title: "Структура учебной презентации",
     description: "Сюжет презентации, визуальная иерархия и работа с диаграммами.",
@@ -157,7 +157,7 @@ PDF подходит для финальной передачи, DOCX — для
   {
     id: "dl-final",
     courseId: "digital-literacy",
-    moduleId: "dl-communication",
+    moduleId: "dl-research-module",
     topicId: "dl-presenting",
     title: "Итоговый практикум",
     description: "Применение навыков курса в едином учебном сценарии.",

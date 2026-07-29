@@ -135,6 +135,11 @@ export default function StudentProgressPage() {
           const currentLesson = progress.currentLessonId
             ? getLessonById(progress.currentLessonId)
             : null;
+          const currentModule = currentLesson
+            ? course.modules.find(
+                (module) => module.id === currentLesson.moduleId,
+              )
+            : null;
           const inProgressCount = lessons.filter(
             (lesson) =>
               getResolvedLessonStatus(lesson, state) === "in-progress",
@@ -159,7 +164,13 @@ export default function StudentProgressPage() {
                   <p className="mt-1 text-xs font-bold text-ash">
                     {course.instructor.name}
                   </p>
-                  <p className="mt-2 truncate text-xs text-ash">
+                  <p className="mt-2 text-xs text-ash">
+                    Текущий модуль:{" "}
+                    <strong className="text-graphite">
+                      {currentModule?.title ?? "Курс завершён"}
+                    </strong>
+                  </p>
+                  <p className="mt-1 text-xs text-ash">
                     Текущий урок:{" "}
                     <strong className="text-graphite">
                       {currentLesson?.title ?? "Курс завершён"}
@@ -247,6 +258,38 @@ export default function StudentProgressPage() {
                               percent={modulePercent}
                             />
                           </div>
+                          <ul className="mt-4 grid gap-2">
+                            {moduleLessons.map((lesson) => {
+                              const lessonStatus = getResolvedLessonStatus(
+                                lesson,
+                                state,
+                              );
+                              const lessonTitle = (
+                                <span className="min-w-0 flex-1 truncate text-xs font-bold text-graphite">
+                                  {lesson.title}
+                                </span>
+                              );
+
+                              return (
+                                <li
+                                  className="flex min-w-0 items-center gap-2 rounded-brand border border-line bg-mist px-3 py-2"
+                                  key={lesson.id}
+                                >
+                                  {lessonStatus === "locked" ? (
+                                    lessonTitle
+                                  ) : (
+                                    <Link
+                                      className="min-w-0 flex-1 hover:underline"
+                                      to={`/student/courses/${course.id}/lessons/${lesson.id}`}
+                                    >
+                                      {lessonTitle}
+                                    </Link>
+                                  )}
+                                  <StatusBadge status={lessonStatus} />
+                                </li>
+                              );
+                            })}
+                          </ul>
                         </div>
                       );
                     })}

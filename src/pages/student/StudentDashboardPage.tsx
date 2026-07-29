@@ -60,13 +60,20 @@ export default function StudentDashboardPage() {
     ? getLessonById(state.lastLessonId)
     : null;
   const lastCourse = lastLesson ? getCourseById(lastLesson.courseId) : null;
-  const fallbackCourse = activeCourses[0]?.course ?? mockCourses[0];
+  const lastCourseContinuation = lastCourse
+    ? getNextAvailableLesson(lastCourse, state)
+    : null;
+  const fallbackContinuation = activeCourses
+    .map(({ course }) => ({
+      course,
+      lesson: getNextAvailableLesson(course, state),
+    }))
+    .find(({ lesson }) => lesson !== null);
   const continueLesson =
-    lastLesson ??
-    (fallbackCourse ? getNextAvailableLesson(fallbackCourse, state) : null);
+    lastCourseContinuation ?? fallbackContinuation?.lesson ?? null;
   const continueCourse = continueLesson
     ? getCourseById(continueLesson.courseId)
-    : lastCourse;
+    : null;
   const continueProgress = continueCourse
     ? getCourseProgress(continueCourse, state)
     : null;

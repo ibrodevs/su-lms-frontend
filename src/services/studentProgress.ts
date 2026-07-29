@@ -190,9 +190,7 @@ export function getCourseProgress(
   const activeLesson = lessons.find(
     (lesson) => state.lessons[lesson.id]?.status === "in-progress",
   );
-  const firstAvailable = lessons.find(
-    (lesson) => getResolvedLessonStatus(lesson, state) !== "locked",
-  );
+  const continuationLesson = getNextAvailableLesson(course, state);
   const percent = lessons.length
     ? Math.round((completed / lessons.length) * 100)
     : 0;
@@ -208,7 +206,7 @@ export function getCourseProgress(
     total: lessons.length,
     percent,
     status,
-    currentLessonId: activeLesson?.id ?? firstAvailable?.id ?? null,
+    currentLessonId: activeLesson?.id ?? continuationLesson?.id ?? null,
   };
 }
 
