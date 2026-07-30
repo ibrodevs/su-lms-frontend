@@ -42,7 +42,7 @@ export default function LoginPage() {
 
     execute(() => {
       if (form.email.trim() === credentials.email && form.password === credentials.password) {
-        history.push("/profile");
+        history.push("/student");
         return;
       }
 
