@@ -1,0 +1,146 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ecto: #58cc02;
+  --color-ecto-dark: #46a302;
+  --color-lingot: #a5ed6e;
+  --color-eel: #d7ffb8;
+  --color-macaw: #1cb0f6;
+  --color-macaw-dark: #168fcc;
+  --color-navy: #042c60;
+  --color-midnight: #000437;
+  --color-graphite: #3c3c3c;
+  --color-ash: #777777;
+  --color-charcoal: #4b4b4b;
+  --color-paper: #ffffff;
+  --color-mist: #f7f7f7;
+  --color-line: #e5e5e5;
+  --color-warning: #ffb800;
+  --color-danger: #ea2b2b;
+  --font-rounded: "Nunito", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif;
+  --radius-brand: 0.75rem;
+}
+
+:root {
+  --student-sidebar-width: 272px;
+  --student-sidebar-collapsed-width: 88px;
+}
+
+.student-theme {
+  min-height: 100vh;
+  background: #ffffff;
+  color: #3c3c3c;
+  font-family: "Nunito", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+}
+
+.student-theme *,
+.student-theme *::before,
+.student-theme *::after {
+  box-sizing: border-box;
+}
+
+.student-theme :focus-visible {
+  outline: 3px solid #1cb0f6;
+  outline-offset: 3px;
+}
+
+.student-pressable {
+  border-bottom-width: 4px;
+  transition:
+    transform 140ms ease,
+    border-bottom-width 140ms ease,
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.student-pressable:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.student-pressable:active:not(:disabled) {
+  transform: translateY(2px);
+  border-bottom-width: 2px;
+}
+
+.student-scrollbar {
+  scrollbar-color: #d7ffb8 transparent;
+  scrollbar-width: thin;
+}
+
+.student-rich-text h2,
+.student-rich-text h3 {
+  margin: 1.5rem 0 0.75rem;
+  color: #042c60;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.student-rich-text h2 {
+  font-size: 1.5rem;
+}
+
+.student-rich-text h3 {
+  font-size: 1.2rem;
+}
+
+.student-rich-text p,
+.student-rich-text ul,
+.student-rich-text ol,
+.student-rich-text blockquote,
+.student-rich-text pre {
+  margin: 0.75rem 0;
+}
+
+.student-rich-text ul,
+.student-rich-text ol {
+  padding-left: 1.5rem;
+}
+
+.student-rich-text ul {
+  list-style: disc;
+}
+
+.student-rich-text ol {
+  list-style: decimal;
+}
+
+.student-rich-text blockquote {
+  border-left: 4px solid #a5ed6e;
+  padding: 0.75rem 1rem;
+  background: #f7fff1;
+  color: #4b4b4b;
+}
+
+.student-rich-text code {
+  border-radius: 0.375rem;
+  padding: 0.1rem 0.35rem;
+  background: #f0f0f0;
+  color: #042c60;
+}
+
+.student-rich-text pre {
+  overflow-x: auto;
+  border: 2px solid #e5e5e5;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  background: #f7f7f7;
+}
+
+.student-rich-text pre code {
+  padding: 0;
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-theme *,
+  .student-theme *::before,
+  .student-theme *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
