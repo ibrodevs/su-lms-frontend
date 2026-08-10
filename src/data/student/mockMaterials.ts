@@ -1,6 +1,6 @@
 import type { Material } from "../../types/student";
 
-export const mockMaterials: Material[] = [
+const baseMaterials: Material[] = [
   {
     id: "dl-campus-guide",
     courseId: "digital-literacy",
@@ -141,3 +141,35 @@ export const mockMaterials: Material[] = [
     availability: "unavailable",
   },
 ];
+
+const generatedMaterials: Material[] = Array.from({ length: 16 }, (_, index) => {
+  const courseIds = ["web-development", "database-systems", "software-testing", "project-management"];
+  const courseId = courseIds[index % courseIds.length]!;
+  const lessonNumber = (index % 20) + 1;
+  const moduleIndex = Math.floor((lessonNumber - 1) / 10) + 1;
+  const topicIndex = Math.floor(((lessonNumber - 1) % 10) / 5) + 1;
+  const lessonIndex = ((lessonNumber - 1) % 5) + 1;
+  const lessonId = `${courseId}-lesson-${moduleIndex}-${topicIndex}-${lessonIndex}`;
+  const type = (["pdf", "docx", "pptx", "image"] as const)[index % 4]!;
+  return {
+    id: `generated-material-${index + 1}`,
+    courseId,
+    lessonId,
+    title: `Учебный материал ${index + 1}`,
+    description: "Mock-файл для демонстрации просмотра и скачивания материалов.",
+    type,
+    size: `${120 + index * 15} KB`,
+    pageCount: type === "pdf" ? 4 + (index % 6) : undefined,
+    url: type === "image"
+      ? "/images/subjects/informatics.svg"
+      : type === "docx"
+        ? "/materials/security-checklist.docx"
+        : type === "pptx"
+          ? "/materials/presentation-template.pptx"
+          : "/materials/algorithms.pdf",
+    downloadAllowed: index % 5 !== 0,
+    availability: index % 9 === 0 ? "error" : "available",
+  } satisfies Material;
+});
+
+export const mockMaterials: Material[] = [...baseMaterials, ...generatedMaterials];
