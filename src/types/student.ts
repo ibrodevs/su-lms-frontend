@@ -17,6 +17,34 @@ export type CalendarEventType =
   | "module-open"
   | "lesson-open"
   | "lesson-close";
+export type AssignmentStatus =
+  | "not-started"
+  | "in-progress"
+  | "submitted"
+  | "reviewed"
+  | "overdue";
+export type TestStatus =
+  | "available"
+  | "in-progress"
+  | "passed"
+  | "failed"
+  | "locked";
+export type QuestionType = "single" | "multiple" | "boolean" | "text";
+export type ScheduleType =
+  | "lecture"
+  | "practice"
+  | "lab"
+  | "online"
+  | "exam";
+export type NotificationType =
+  | "lesson"
+  | "assignment"
+  | "deadline"
+  | "test"
+  | "result"
+  | "reviewed"
+  | "announcement"
+  | "schedule";
 
 export interface Student {
   id: string;
@@ -27,6 +55,12 @@ export interface Student {
   program: string;
   semester: string;
   email: string;
+  phone?: string;
+  secondaryEmail?: string;
+  dateOfBirth?: string;
+  year?: number;
+  studentStatus?: "active" | "academic-leave" | "graduated";
+  curator?: string;
 }
 
 export interface Instructor {
@@ -120,6 +154,75 @@ export interface CalendarEvent {
   lessonId?: string;
   startsAt: string;
   type: CalendarEventType;
+}
+
+export interface Assignment {
+  id: string;
+  courseId: string;
+  title: string;
+  description: string;
+  instructions: string;
+  publishedAt: string;
+  dueAt: string;
+  maxScore: number;
+  status: AssignmentStatus;
+  attachmentName?: string;
+  draftAnswer?: string;
+  submittedAnswer?: string;
+  reviewedScore?: number;
+}
+
+export interface TestQuestion {
+  id: string;
+  type: QuestionType;
+  prompt: string;
+  options?: string[];
+  correctOptionIds?: string[];
+  correctText?: string;
+}
+
+export interface TestDefinition {
+  id: string;
+  courseId: string;
+  title: string;
+  description: string;
+  durationMinutes: number;
+  passingScore: number;
+  attemptsAllowed: number;
+  status: TestStatus;
+  questions: TestQuestion[];
+}
+
+export interface TestResult {
+  testId: string;
+  score: number;
+  percent: number;
+  passed: boolean;
+  completedAt: string;
+  answers: Record<string, string | string[]>;
+}
+
+export interface ScheduleItem {
+  id: string;
+  courseId: string;
+  title: string;
+  instructor: string;
+  room: string;
+  startsAt: string;
+  endsAt: string;
+  type: ScheduleType;
+  group: string;
+  status: "scheduled" | "live" | "completed" | "cancelled";
+}
+
+export interface NotificationItem {
+  id: string;
+  type: NotificationType;
+  title: string;
+  text: string;
+  createdAt: string;
+  read: boolean;
+  target?: string;
 }
 
 export interface LessonProgressRecord {

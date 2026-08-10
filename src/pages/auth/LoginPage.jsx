@@ -1,11 +1,12 @@
 import { ArrowRight, Mail } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useHistory } from "react-router-dom";
 import Alert from "../../components/common/Alert";
 import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import PasswordInput from "../../components/common/PasswordInput";
 import useDelayedAction from "../../hooks/useDelayedAction";
+import { getStudentLocalState, setAuthenticated } from "../../services/studentStorage";
 
 const credentials = {
   email: "student@su.edu.kg",
@@ -18,6 +19,10 @@ export default function LoginPage() {
   const [authError, setAuthError] = useState("");
   const { execute, isLoading } = useDelayedAction(750);
   const history = useHistory();
+
+  useEffect(() => {
+    if (getStudentLocalState().authenticated) history.replace("/student");
+  }, [history]);
 
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -42,6 +47,7 @@ export default function LoginPage() {
 
     execute(() => {
       if (form.email.trim() === credentials.email && form.password === credentials.password) {
+        setAuthenticated(true);
         history.push("/student");
         return;
       }

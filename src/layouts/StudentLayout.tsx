@@ -1,6 +1,10 @@
 import {
   BookOpen,
+  Bell,
   CalendarDays,
+  CalendarClock,
+  CheckSquare,
+  ClipboardList,
   ChevronLeft,
   ChevronRight,
   GraduationCap,
@@ -16,6 +20,12 @@ import type { ReactNode } from "react";
 import { Link, NavLink, useHistory, useLocation } from "react-router-dom";
 import ConfirmDialog from "../components/student/ConfirmDialog";
 import { mockStudent } from "../data/student/mockStudent";
+import { mockNotifications } from "../data/student/mockNotifications";
+import {
+  getStudentLocalState,
+  setAuthenticated,
+  subscribeStudentStorage,
+} from "../services/studentStorage";
 import { cn } from "../utils/cn";
 
 const SIDEBAR_STORAGE_KEY = "su-lms:student-sidebar-collapsed";
@@ -40,6 +50,30 @@ const navigation = [
     label: "Календарь",
     to: "/student/calendar",
   },
+  {
+    exact: false,
+    icon: CalendarClock,
+    label: "Расписание",
+    to: "/student/schedule",
+  },
+  {
+    exact: false,
+    icon: ClipboardList,
+    label: "Задания",
+    to: "/student/assignments",
+  },
+  {
+    exact: false,
+    icon: CheckSquare,
+    label: "Тесты",
+    to: "/student/tests",
+  },
+  {
+    exact: false,
+    icon: Bell,
+    label: "Уведомления",
+    to: "/student/notifications",
+  },
   { exact: false, icon: UserRound, label: "Профиль", to: "/profile" },
 ];
 
@@ -59,6 +93,10 @@ function getPageTitle(pathname: string): string {
   if (pathname === "/student/courses") return "Мои курсы";
   if (pathname === "/student/progress") return "Прогресс";
   if (pathname === "/student/calendar") return "Календарь";
+  if (pathname === "/student/schedule") return "Расписание";
+  if (pathname.startsWith("/student/assignments")) return "Задания";
+  if (pathname.startsWith("/student/tests")) return "Тесты";
+  if (pathname === "/student/notifications") return "Уведомления";
   return "Главная";
 }
 
@@ -81,6 +119,17 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
     [location.pathname],
   );
   const initials = `${mockStudent.firstName[0]}${mockStudent.lastName[0]}`;
+  const [storageRevision, setStorageRevision] = useState(0);
+  useEffect(
+    () => subscribeStudentStorage(() => setStorageRevision((value) => value + 1)),
+    [],
+  );
+  const localState = useMemo(getStudentLocalState, [storageRevision]);
+  const unreadNotifications = mockNotifications.filter(
+    (notification) =>
+      !notification.read &&
+      !localState.readNotifications.includes(notification.id),
+  ).length;
   const openLogout = useCallback(() => setIsLogoutOpen(true), []);
   const closeLogout = useCallback(() => setIsLogoutOpen(false), []);
 
@@ -101,6 +150,7 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
 
   const logout = useCallback(() => {
     setIsLogoutOpen(false);
+    setAuthenticated(false);
     history.push("/login");
   }, [history]);
 
@@ -238,10 +288,23 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
             </div>
           </div>
 
-          <Link
+          <div className="flex items-center gap-2">
+            <Link
+              aria-label="Уведомления"
+              className="relative grid size-11 place-items-center rounded-brand border-2 border-line text-ash hover:bg-mist hover:text-graphite"
+              to="/student/notifications"
+            >
+              <Bell aria-hidden="true" size={19} />
+              {unreadNotifications > 0 && (
+                <span className="absolute right-1 top-1 grid min-w-4 place-items-center rounded-full bg-danger px-1 text-[9px] font-black leading-4 text-white">
+                  {unreadNotifications}
+                </span>
+              )}
+            </Link>
+            <Link
             className="flex min-w-0 items-center gap-3 rounded-brand border-2 border-transparent p-1.5 hover:border-line hover:bg-mist"
             to="/profile"
-          >
+            >
             <span className="grid size-10 shrink-0 place-items-center rounded-brand border-2 border-macaw bg-macaw/10 text-sm font-black text-macaw-dark">
               {initials}
             </span>
@@ -253,7 +316,8 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
                 {mockStudent.group} · {mockStudent.id}
               </small>
             </span>
-          </Link>
+            </Link>
+          </div>
         </header>
 
         <main className="mx-auto w-full max-w-[1200px] px-4 py-6 pb-28 sm:px-6 sm:py-8 lg:px-8 lg:pb-12">
@@ -267,7 +331,7 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
         aria-label="Мобильная навигация"
         className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t-2 border-line bg-paper px-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1 lg:hidden"
       >
-        {navigation.map(({ exact, icon: Icon, label, to }) => (
+        {navigation.slice(0, 5).map(({ exact, icon: Icon, label, to }) => (
           <NavLink
             activeClassName="!text-ecto-dark"
             className="grid min-w-0 justify-items-center gap-1 rounded-brand px-1 py-2 text-[9px] font-black text-ash"

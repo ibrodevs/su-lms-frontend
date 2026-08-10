@@ -1,6 +1,6 @@
 import type { CalendarEvent } from "../../types/student";
 
-export const mockCalendarEvents: CalendarEvent[] = [
+const baseCalendarEvents: CalendarEvent[] = [
   {
     id: "event-dl-module",
     title: "Открытие модуля «Исследование»",
@@ -54,3 +54,20 @@ export const mockCalendarEvents: CalendarEvent[] = [
     type: "module-open",
   },
 ];
+
+const generatedCalendarEvents: CalendarEvent[] = Array.from({ length: 28 }, (_, index) => {
+  const courseIds = ["web-development", "database-systems", "software-testing", "project-management"];
+  const courseId = courseIds[index % courseIds.length]!;
+  const day = 10 + index;
+  const type: CalendarEvent["type"] = (["lesson-open", "lesson-close", "module-open", "course-start", "course-end"] as const)[index % 5]!;
+  return {
+    id: `generated-event-${index + 1}`,
+    title: `${type === "lesson-open" ? "Новый урок" : type === "lesson-close" ? "Дедлайн урока" : type === "module-open" ? "Открытие модуля" : type === "course-start" ? "Начало курса" : "Завершение курса"} · событие ${index + 1}`,
+    description: "Mock-событие учебного календаря.",
+    courseId,
+    startsAt: `2026-08-${String(((day - 1) % 28) + 1).padStart(2, "0")}T${String(9 + (index % 8)).padStart(2, "0")}:00:00+06:00`,
+    type,
+  };
+});
+
+export const mockCalendarEvents: CalendarEvent[] = [...baseCalendarEvents, ...generatedCalendarEvents];

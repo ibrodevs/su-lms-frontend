@@ -72,6 +72,32 @@ body {
   display: none;
 }
 
+.su-profile-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-bottom: 2px solid #e5e5e5;
+  padding-bottom: 8px;
+}
+
+.su-profile-tab {
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: #ffffff;
+  color: #777777;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.su-profile-tab:hover,
+.su-profile-tab.is-active {
+  border-color: #a5ed6e;
+  background: #f7fff1;
+  color: #46a302;
+}
+
 .su-auth-aside__content > p,
 .su-auth-highlights p,
 .su-auth-aside__link,
