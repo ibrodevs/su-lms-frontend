@@ -51,7 +51,7 @@ const generatedTests: TestDefinition[] = Array.from({ length: 5 }, (_, index) =>
     id: `test-generated-${index + 1}`,
     courseId,
     title: `Итоговый тест модуля ${index + 1}`,
-    description: "Короткая проверка понимания mock-материалов курса.",
+    description: "Короткая проверка понимания учебных материалов курса.",
     durationMinutes: 10 + index,
     passingScore: 70,
     attemptsAllowed: 2,

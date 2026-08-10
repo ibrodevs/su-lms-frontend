@@ -150,23 +150,30 @@ const generatedMaterials: Material[] = Array.from({ length: 16 }, (_, index) => 
   const topicIndex = Math.floor(((lessonNumber - 1) % 10) / 5) + 1;
   const lessonIndex = ((lessonNumber - 1) % 5) + 1;
   const lessonId = `${courseId}-lesson-${moduleIndex}-${topicIndex}-${lessonIndex}`;
-  const type = (["pdf", "docx", "pptx", "image"] as const)[index % 4]!;
+  const type = (["pdf", "doc", "docx", "ppt", "pptx", "image", "video", "text"] as const)[index % 8]!;
   return {
     id: `generated-material-${index + 1}`,
     courseId,
     lessonId,
     title: `Учебный материал ${index + 1}`,
-    description: "Mock-файл для демонстрации просмотра и скачивания материалов.",
+    description: "Учебный файл для просмотра и скачивания материалов курса.",
     type,
     size: `${120 + index * 15} KB`,
     pageCount: type === "pdf" ? 4 + (index % 6) : undefined,
-    url: type === "image"
-      ? "/images/subjects/informatics.svg"
-      : type === "docx"
-        ? "/materials/security-checklist.docx"
-        : type === "pptx"
-          ? "/materials/presentation-template.pptx"
-          : "/materials/algorithms.pdf",
+    url:
+      type === "image"
+        ? "/images/subjects/informatics.svg"
+        : type === "doc" || type === "docx"
+          ? "/materials/security-checklist.docx"
+          : type === "ppt" || type === "pptx"
+            ? "/materials/presentation-template.pptx"
+            : type === "video"
+              ? "https://www.w3schools.com/html/mov_bbb.mp4"
+              : type === "text"
+                ? undefined
+                : "/materials/algorithms.pdf",
+    addedAt: `2026-08-${String((index % 9) + 1).padStart(2, "0")}T10:00:00+06:00`,
+    author: "Учебный отдел SU",
     downloadAllowed: index % 5 !== 0,
     availability: index % 9 === 0 ? "error" : "available",
   } satisfies Material;

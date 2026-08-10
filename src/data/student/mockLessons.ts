@@ -219,7 +219,7 @@ PDF подходит для финальной передачи, DOCX — для
 
 const generatedCourseIds = ["web-development", "database-systems", "software-testing", "project-management"];
 const generatedLessons: Lesson[] = generatedCourseIds.flatMap((courseId, courseIndex) =>
-  Array.from({ length: 20 }, (_, index) => {
+  Array.from({ length: 30 }, (_, index) => {
     const moduleIndex = Math.floor(index / 10) + 1;
     const topicIndex = Math.floor((index % 10) / 5) + 1;
     const lessonIndex = (index % 5) + 1;
@@ -234,7 +234,7 @@ const generatedLessons: Lesson[] = generatedCourseIds.flatMap((courseId, courseI
       moduleId: `${courseId}-module-${moduleIndex}`,
       topicId: `${courseId}-topic-${moduleIndex}-${topicIndex}`,
       title: `${["Введение", "Практический блок", "Итоговый разбор", "Проектный сценарий"][courseIndex]}: урок ${index + 1}`,
-      description: "Короткий mock-урок с текстом, примерами и практическим заданием.",
+      description: "Короткий урок с текстом, примерами и практическим заданием.",
       durationMinutes: 15 + (index % 4) * 5,
       contentType: index % 3 === 0 ? "mixed" : "rich-text",
       content: `## Цель урока ${index + 1}\n\nИзучите ключевые понятия и выполните небольшую практику.\n\n- прочитайте материал;\n- проверьте пример;\n- сохраните прогресс.`,

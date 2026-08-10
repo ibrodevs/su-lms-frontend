@@ -66,7 +66,7 @@ const generatedAssignments: Assignment[] = Array.from({ length: 8 }, (_, index) 
     id: `assignment-generated-${index + 1}`,
     courseId,
     title: `Практическая работа ${index + 1}`,
-    description: "Практическое задание из mock-релиза курса.",
+    description: "Практическое задание по материалам курса.",
     instructions: "Изучите материалы урока, подготовьте ответ и сохраните результат.",
     publishedAt: `2026-08-${String(Math.max(1, dueDay - 5)).padStart(2, "0")}T09:00:00+06:00`,
     dueAt: `2026-08-${String(dueDay).padStart(2, "0")}T18:00:00+06:00`,

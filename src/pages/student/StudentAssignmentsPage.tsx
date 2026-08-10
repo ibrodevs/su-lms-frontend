@@ -51,25 +51,51 @@ export default function StudentAssignmentsPage() {
   const [query, setQuery] = useState("");
   const [courseId, setCourseId] = useState("all");
   const [status, setStatus] = useState("all");
+  const [period, setPeriod] = useState("all");
   const [assignmentStates] = useState(
     () => getStudentLocalState().assignments,
   );
-  const filtered = useMemo(() => mockAssignments.filter((assignment) => {
-    const course = mockCourses.find((item) => item.id === assignment.courseId);
-    const matchesQuery = `${assignment.title} ${course?.title ?? ""}`.toLowerCase().includes(query.toLowerCase());
-    const effectiveStatus = getEffectiveStatus(
-      assignment,
-      assignmentStates[assignment.id]?.status,
-    );
-    return matchesQuery && (courseId === "all" || assignment.courseId === courseId) && (status === "all" || effectiveStatus === status);
-  }), [assignmentStates, courseId, query, status]);
+  const filtered = useMemo(
+    () =>
+      mockAssignments.filter((assignment) => {
+        const course = mockCourses.find(
+          (item) => item.id === assignment.courseId,
+        );
+        const matchesQuery = `${assignment.title} ${course?.title ?? ""}`
+          .toLowerCase()
+          .includes(query.toLowerCase());
+        const effectiveStatus = getEffectiveStatus(
+          assignment,
+          assignmentStates[assignment.id]?.status,
+        );
+        const dueAt = new Date(assignment.dueAt).getTime();
+        const now = Date.now();
+        const periodLimit =
+          period === "week"
+            ? now + 7 * 24 * 60 * 60 * 1000
+            : now + 30 * 24 * 60 * 60 * 1000;
+        const matchesPeriod =
+          period === "all" ||
+          (period === "overdue"
+            ? effectiveStatus === "overdue"
+            : dueAt >= now && dueAt <= periodLimit);
+
+        return (
+          matchesQuery &&
+          (courseId === "all" || assignment.courseId === courseId) &&
+          (status === "all" || effectiveStatus === status) &&
+          matchesPeriod
+        );
+      }),
+    [assignmentStates, courseId, period, query, status],
+  );
 
   if (isLoading) return <StatePanel kind="loading" title="Загружаем задания" description="Подготавливаем дедлайны и статусы работ." />;
 
   return (
     <div className="grid gap-6">
       <PageHeading eyebrow="Учебная активность" title="Задания" description="Контролируйте дедлайны, черновики и отправленные работы." />
-      <section className="grid gap-3 rounded-brand border-2 border-line bg-paper p-4 sm:grid-cols-[1fr_auto_auto]">
+      <section className="grid gap-3 rounded-brand border-2 border-line bg-paper p-4 sm:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_auto_auto_auto]">
         <label className="relative m-0 block">
           <Search aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 text-ash" size={18} />
           <input aria-label="Поиск заданий" className="w-full rounded-brand border-2 border-line bg-paper py-3 pl-10 pr-3 text-sm outline-none focus:border-macaw" onChange={(event) => setQuery(event.target.value)} placeholder="Поиск по заданиям" value={query} />
@@ -81,6 +107,12 @@ export default function StudentAssignmentsPage() {
         <select aria-label="Фильтр статуса" className="rounded-brand border-2 border-line bg-paper px-3 py-3 text-sm font-bold text-graphite" onChange={(event) => setStatus(event.target.value)} value={status}>
           <option value="all">Все статусы</option>
           {Object.entries(labels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+        </select>
+        <select aria-label="Фильтр периода" className="rounded-brand border-2 border-line bg-paper px-3 py-3 text-sm font-bold text-graphite" onChange={(event) => setPeriod(event.target.value)} value={period}>
+          <option value="all">Все периоды</option>
+          <option value="week">Ближайшие 7 дней</option>
+          <option value="month">Ближайшие 30 дней</option>
+          <option value="overdue">Просроченные</option>
         </select>
       </section>
       {filtered.length === 0 ? <StatePanel title="Заданий не найдено" description="Измените фильтры или поисковый запрос." icon={SlidersHorizontal} /> : (

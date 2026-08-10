@@ -28,6 +28,28 @@ const typeLabels: Record<CalendarEventType, string> = {
   "module-open": "Открытие модуля",
   "lesson-open": "Открытие урока",
   "lesson-close": "Закрытие урока",
+  lesson: "Занятие",
+  assignment: "Задание",
+  test: "Тест",
+  exam: "Экзамен",
+  deadline: "Дедлайн",
+  event: "Событие",
+  announcement: "Объявление",
+};
+
+const eventTypeClasses: Record<CalendarEventType, string> = {
+  "course-start": "border-ecto bg-ecto/10 text-ecto-dark",
+  "course-end": "border-navy bg-navy/10 text-navy",
+  "module-open": "border-macaw bg-macaw/10 text-macaw-dark",
+  "lesson-open": "border-ecto bg-ecto/10 text-ecto-dark",
+  "lesson-close": "border-warning bg-warning/10 text-warning-dark",
+  lesson: "border-macaw bg-macaw/10 text-macaw-dark",
+  assignment: "border-warning bg-warning/10 text-warning-dark",
+  test: "border-navy bg-navy/10 text-navy",
+  exam: "border-danger bg-danger/10 text-danger",
+  deadline: "border-danger bg-danger/10 text-danger",
+  event: "border-lingot bg-lingot/15 text-ecto-dark",
+  announcement: "border-macaw bg-macaw/10 text-macaw-dark",
 };
 
 const eventTypeOptions: Array<{
@@ -82,15 +104,13 @@ function getMonthDays(month: Date): Date[] {
 }
 
 function eventTarget(event: CalendarEvent): string {
-  return event.lessonId
+  return event.target ?? (event.lessonId
     ? `/student/courses/${event.courseId}/lessons/${event.lessonId}`
-    : `/student/courses/${event.courseId}`;
+    : `/student/courses/${event.courseId}`);
 }
 
 export default function StudentCalendarPage() {
-  const [visibleMonth, setVisibleMonth] = useState(
-    () => new Date(2026, 6, 1),
-  );
+  const [visibleMonth, setVisibleMonth] = useState(() => new Date());
   const [courseFilter, setCourseFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState<EventTypeFilter>("all");
   const [selectedEventId, setSelectedEventId] = useState<string | null>(
@@ -184,7 +204,7 @@ export default function StudentCalendarPage() {
 
       <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
         <div className="overflow-hidden rounded-brand border-2 border-line bg-paper">
-          <header className="flex items-center justify-between gap-4 border-b-2 border-line p-4">
+          <header className="flex items-center justify-between gap-3 border-b-2 border-line p-4">
             <button
               aria-label="Предыдущий месяц"
               className="grid size-10 place-items-center rounded-brand border-2 border-line text-ash hover:bg-mist"
@@ -193,9 +213,18 @@ export default function StudentCalendarPage() {
             >
               <ArrowLeft aria-hidden="true" size={18} />
             </button>
-            <h2 className="text-center text-lg font-black capitalize text-navy">
-              {monthFormatter.format(visibleMonth)}
-            </h2>
+            <div className="grid justify-items-center gap-1">
+              <h2 className="text-center text-lg font-black capitalize text-navy">
+                {monthFormatter.format(visibleMonth)}
+              </h2>
+              <button
+                className="text-xs font-black text-macaw-dark hover:underline"
+                onClick={() => setVisibleMonth(new Date())}
+                type="button"
+              >
+                Сегодня
+              </button>
+            </div>
             <button
               aria-label="Следующий месяц"
               className="grid size-10 place-items-center rounded-brand border-2 border-line text-ash hover:bg-mist"
@@ -236,7 +265,7 @@ export default function StudentCalendarPage() {
                     {events.slice(0, 2).map((event) => (
                       <button
                         aria-label={`${event.title}, ${fullDateFormatter.format(new Date(event.startsAt))}`}
-                        className="min-h-2 overflow-hidden rounded-brand border border-ecto bg-ecto/10 px-1 py-0.5 text-left text-[8px] font-black leading-3 text-ecto-dark sm:min-h-6 sm:text-[9px]"
+                        className={`min-h-2 overflow-hidden rounded-brand border px-1 py-0.5 text-left text-[8px] font-black leading-3 sm:min-h-6 sm:text-[9px] ${eventTypeClasses[event.type]}`}
                         key={event.id}
                         onClick={() => setSelectedEventId(event.id)}
                         title={event.title}

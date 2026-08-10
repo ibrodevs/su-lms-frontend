@@ -12,7 +12,7 @@ const generatedNotifications: NotificationItem[] = Array.from({ length: 22 }, (_
   id: `notification-generated-${index + 1}`,
   type: (["lesson", "assignment", "deadline", "test", "result", "reviewed", "announcement", "schedule"] as const)[index % 8]!,
   title: `Учебное уведомление ${index + 1}`,
-  text: "Это демонстрационное уведомление из mock-данных Release 1.",
+  text: "Новое сообщение об учебной активности в кабинете студента.",
   createdAt: `2026-08-${String(Math.max(1, 5 - (index % 4))).padStart(2, "0")}T${String(8 + (index % 10)).padStart(2, "0")}:00:00+06:00`,
   read: index % 3 === 0,
   target: index % 2 === 0 ? "/student" : "/student/notifications",

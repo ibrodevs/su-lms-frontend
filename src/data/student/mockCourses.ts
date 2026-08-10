@@ -191,7 +191,7 @@ const generatedCourses: Course[] = generatedCourseMeta.map(([id, title, code, fa
   id,
   title,
   code,
-  description: `Практический курс ${title.toLowerCase()} с модульной программой и mock-сценариями обучения.`,
+  description: `Практический курс ${title.toLowerCase()} с модульной программой и учебными сценариями.`,
   faculty,
   program: "Программная инженерия",
   credits: 4,
@@ -210,9 +210,9 @@ const generatedCourses: Course[] = generatedCourseMeta.map(([id, title, code, fa
   syllabus: ["Основы", "Практика", "Итоговый проект"],
   prerequisites: [],
   materialIds: [],
-  modules: Array.from({ length: 2 }, (_, moduleIndex) => ({
+  modules: Array.from({ length: 3 }, (_, moduleIndex) => ({
     id: `${id}-module-${moduleIndex + 1}`,
-    title: `Модуль ${moduleIndex + 1}. ${moduleIndex === 0 ? "Основы" : "Практика"}`,
+    title: `Модуль ${moduleIndex + 1}. ${moduleIndex === 0 ? "Основы" : moduleIndex === 1 ? "Практика" : "Итоговый проект"}`,
     description: "Последовательный блок учебных тем и практических занятий.",
     topics: Array.from({ length: 2 }, (_, topicIndex) => ({
       id: `${id}-topic-${moduleIndex + 1}-${topicIndex + 1}`,

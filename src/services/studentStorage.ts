@@ -16,6 +16,8 @@ export interface StudentLocalState {
   assignments: Record<string, AssignmentState>;
   testResults: Record<string, TestResult>;
   readNotifications: string[];
+  deletedNotifications: string[];
+  sidebarCollapsed: boolean;
 }
 
 const defaults: StudentLocalState = {
@@ -25,6 +27,8 @@ const defaults: StudentLocalState = {
   assignments: {},
   testResults: {},
   readNotifications: [],
+  deletedNotifications: [],
+  sidebarCollapsed: false,
 };
 
 function storageKey(key: string): string {
@@ -62,6 +66,11 @@ export function getStudentLocalState(): StudentLocalState {
     assignments: read("assignments", defaults.assignments),
     testResults: read("test-results", defaults.testResults),
     readNotifications: read("read-notifications", defaults.readNotifications),
+    deletedNotifications: read(
+      "deleted-notifications",
+      defaults.deletedNotifications,
+    ),
+    sidebarCollapsed: read("sidebar-collapsed", defaults.sidebarCollapsed),
   };
 }
 
@@ -93,6 +102,21 @@ export function markNotificationRead(notificationId: string): void {
 
 export function markAllNotificationsRead(notificationIds: string[]): void {
   write("read-notifications", notificationIds);
+}
+
+export function deleteNotification(notificationId: string): void {
+  const ids = read("deleted-notifications", defaults.deletedNotifications);
+  if (!ids.includes(notificationId)) {
+    write("deleted-notifications", [...ids, notificationId]);
+  }
+}
+
+export function getSidebarCollapsed(): boolean {
+  return read("sidebar-collapsed", defaults.sidebarCollapsed);
+}
+
+export function setSidebarCollapsed(value: boolean): void {
+  write("sidebar-collapsed", value);
 }
 
 export function subscribeStudentStorage(onStoreChange: () => void): () => void {

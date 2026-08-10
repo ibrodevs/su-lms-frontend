@@ -1,12 +1,20 @@
-export type CourseStatus = "not-started" | "in-progress" | "completed";
+export type CourseStatus =
+  | "not-started"
+  | "in-progress"
+  | "completed"
+  | "locked";
 export type LessonProgressStatus = CourseStatus;
 export type ResolvedLessonStatus = LessonProgressStatus | "locked";
 export type MaterialType =
   | "pdf"
+  | "doc"
   | "docx"
+  | "ppt"
   | "pptx"
   | "audio"
   | "image"
+  | "video"
+  | "text"
   | "external"
   | "library"
   | "other";
@@ -16,7 +24,14 @@ export type CalendarEventType =
   | "course-end"
   | "module-open"
   | "lesson-open"
-  | "lesson-close";
+  | "lesson-close"
+  | "lesson"
+  | "assignment"
+  | "test"
+  | "exam"
+  | "deadline"
+  | "event"
+  | "announcement";
 export type AssignmentStatus =
   | "not-started"
   | "in-progress"
@@ -137,6 +152,8 @@ export interface Material {
   pageCount?: number;
   duration?: string;
   url?: string;
+  addedAt?: string;
+  author?: string;
   downloadAllowed: boolean;
   availability:
     | "available"
@@ -154,6 +171,7 @@ export interface CalendarEvent {
   lessonId?: string;
   startsAt: string;
   type: CalendarEventType;
+  target?: string;
 }
 
 export interface Assignment {
@@ -223,6 +241,16 @@ export interface NotificationItem {
   createdAt: string;
   read: boolean;
   target?: string;
+}
+
+export interface ActivityRecord {
+  id: string;
+  courseId: string;
+  lessonId?: string;
+  type: "lesson" | "assignment" | "test" | "course";
+  title: string;
+  description: string;
+  occurredAt: string;
 }
 
 export interface LessonProgressRecord {
