@@ -301,6 +301,7 @@ export default function StaffCoursesPage() {
                       <td className="px-4 py-4">
                         <div className="flex justify-end gap-2">
                           <ActionLink label="Открыть" to={`/courses/${course.id}`}><Eye aria-hidden="true" size={16} /></ActionLink>
+                          <ActionLink label="Preview" to={`/courses/${course.id}/preview`}><Eye aria-hidden="true" size={16} /></ActionLink>
                           <ActionLink label="Редактировать" to={`/courses/${course.id}/edit`}><Edit3 aria-hidden="true" size={16} /></ActionLink>
                         </div>
                       </td>
@@ -324,8 +325,9 @@ export default function StaffCoursesPage() {
                     <div><dt className="font-bold text-ash">Преподаватель</dt><dd className="mt-1 font-black text-graphite">{renderCourseMeta(course.id, "teacher")}</dd></div>
                     <div><dt className="font-bold text-ash">Семестр</dt><dd className="mt-1 font-black text-graphite">{renderCourseMeta(course.id, "semester")}</dd></div>
                   </dl>
-                  <div className="mt-4 grid grid-cols-2 gap-2">
+                  <div className="mt-4 grid grid-cols-3 gap-2">
                     <ActionLink label="Открыть" to={`/courses/${course.id}`}><Eye aria-hidden="true" size={16} /></ActionLink>
+                    <ActionLink label="Preview" to={`/courses/${course.id}/preview`}><Eye aria-hidden="true" size={16} /></ActionLink>
                     <ActionLink label="Изменить" to={`/courses/${course.id}/edit`}><Edit3 aria-hidden="true" size={16} /></ActionLink>
                   </div>
                 </article>

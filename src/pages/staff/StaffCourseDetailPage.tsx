@@ -6,6 +6,7 @@ import {
   Check,
   CheckCircle2,
   Edit3,
+  Eye,
   FileText,
   FolderTree,
   Layers3,
@@ -167,6 +168,9 @@ export default function StaffCourseDetailPage() {
           <div className="flex flex-wrap gap-2 lg:max-w-sm lg:justify-end">
             <Link className="inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-ecto px-4 text-sm font-black text-ecto-dark hover:bg-ecto/10" to={`/courses/${course.id}/builder`}>
               <FolderTree aria-hidden="true" size={17} /> Открыть Builder
+            </Link>
+            <Link className="inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-macaw px-4 text-sm font-black text-macaw-dark hover:bg-macaw/10" to={`/courses/${course.id}/preview`}>
+              <Eye aria-hidden="true" size={17} /> Preview
             </Link>
             <Link className="inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-line px-4 text-sm font-black text-graphite hover:border-lingot" to={`/courses/${course.id}/edit`}>
               <Edit3 aria-hidden="true" size={17} /> Редактировать

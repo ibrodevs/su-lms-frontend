@@ -1,4 +1,4 @@
-import { ArrowLeft, Menu, PanelLeftClose, Sparkles, X } from "lucide-react";
+import { ArrowLeft, Eye, Menu, PanelLeftClose, Sparkles, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import CourseStructureTree from "../../components/staff/CourseStructureTree";
@@ -109,10 +109,15 @@ export default function CourseBuilderPage() {
           <h1 className="mt-2 text-3xl font-black tracking-tight text-navy sm:text-4xl">Структура курса</h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-ash"><strong className="text-graphite">{course.title}</strong> · {course.code}. Соберите модули, темы и уроки в нужном порядке.</p>
         </div>
-        <div className="grid grid-cols-3 gap-2 sm:flex">
-          <BuilderStat label="Модулей" value={structure.modules.length} />
-          <BuilderStat label="Тем" value={structure.topics.length} />
-          <BuilderStat label="Уроков" value={structure.lessons.length} />
+        <div className="grid gap-3">
+          <Link className="student-pressable inline-flex min-h-11 items-center justify-center gap-2 rounded-brand border-2 border-macaw bg-macaw/10 px-4 text-sm font-black text-macaw-dark" to={`/courses/${course.id}/preview`}>
+            <Eye aria-hidden="true" size={17} /> Предпросмотр курса
+          </Link>
+          <div className="grid grid-cols-3 gap-2 sm:flex">
+            <BuilderStat label="Модулей" value={structure.modules.length} />
+            <BuilderStat label="Тем" value={structure.topics.length} />
+            <BuilderStat label="Уроков" value={structure.lessons.length} />
+          </div>
         </div>
       </header>
 

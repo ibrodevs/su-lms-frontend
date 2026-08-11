@@ -32,6 +32,7 @@ const StaffCourseDetailPage = lazy(() => import("./pages/staff/StaffCourseDetail
 const CourseBuilderPage = lazy(() => import("./pages/staff/CourseBuilderPage"));
 const LessonEditorPage = lazy(() => import("./pages/staff/LessonEditorPage"));
 const StaffMaterialsPage = lazy(() => import("./pages/staff/StaffMaterialsPage"));
+const CoursePreviewPage = lazy(() => import("./pages/staff/CoursePreviewPage"));
 
 function RouteLoading() {
   return (
@@ -126,6 +127,11 @@ export default function App() {
             </Switch>
           </StudentLayout>
         </ProtectedRoute>
+      </Route>
+      <Route exact path="/courses/:courseId/preview">
+        <StaffProtectedRoute>
+          <CoursePreviewPage />
+        </StaffProtectedRoute>
       </Route>
       <Route path={["/teacher", "/content", "/admin", "/courses", "/materials"]}>
         <StaffProtectedRoute>
