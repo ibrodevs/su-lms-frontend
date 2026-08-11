@@ -1,6 +1,9 @@
-import type { CalendarEvent } from "../../types/student";
+import type {
+  CalendarEvent,
+  CalendarEventType,
+} from "../../types/student";
 
-export const mockCalendarEvents: CalendarEvent[] = [
+const baseCalendarEvents: CalendarEvent[] = [
   {
     id: "event-dl-module",
     title: "Открытие модуля «Исследование»",
@@ -54,3 +57,61 @@ export const mockCalendarEvents: CalendarEvent[] = [
     type: "module-open",
   },
 ];
+
+const generatedEventTypes: CalendarEventType[] = [
+  "lesson",
+  "assignment",
+  "test",
+  "exam",
+  "deadline",
+  "event",
+  "announcement",
+];
+
+const generatedEventTitles: Record<CalendarEventType, string> = {
+  "course-start": "Начало курса",
+  "course-end": "Завершение курса",
+  "module-open": "Открытие модуля",
+  "lesson-open": "Открытие урока",
+  "lesson-close": "Закрытие урока",
+  lesson: "Занятие",
+  assignment: "Задание",
+  test: "Тест",
+  exam: "Экзамен",
+  deadline: "Дедлайн",
+  event: "Учебное событие",
+  announcement: "Объявление",
+};
+
+const generatedCalendarEvents: CalendarEvent[] = Array.from(
+  { length: 28 },
+  (_, index) => {
+    const courseIds = [
+      "web-development",
+      "database-systems",
+      "software-testing",
+      "project-management",
+    ];
+    const courseId = courseIds[index % courseIds.length]!;
+    const day = 10 + index;
+    const type = generatedEventTypes[index % generatedEventTypes.length]!;
+    const target =
+      type === "assignment"
+        ? "/student/assignments"
+        : type === "test" || type === "exam"
+          ? "/student/tests"
+          : `/student/courses/${courseId}`;
+
+    return {
+      id: `generated-event-${index + 1}`,
+      title: `${generatedEventTitles[type]} · событие ${index + 1}`,
+      description: "Событие учебного календаря с переходом к связанному разделу.",
+      courseId,
+      startsAt: `2026-08-${String(((day - 1) % 28) + 1).padStart(2, "0")}T${String(9 + (index % 8)).padStart(2, "0")}:00:00+06:00`,
+      target,
+      type,
+    };
+  },
+);
+
+export const mockCalendarEvents: CalendarEvent[] = [...baseCalendarEvents, ...generatedCalendarEvents];

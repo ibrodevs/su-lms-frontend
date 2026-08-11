@@ -4,7 +4,9 @@ import {
   FileImage,
   FileQuestion,
   FileText,
+  FileVideo,
   Library,
+  Pilcrow,
   Presentation,
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -12,10 +14,14 @@ import type { Material } from "../../types/student";
 
 const icons = {
   pdf: FileText,
+  doc: FileText,
   docx: FileText,
+  ppt: Presentation,
   pptx: Presentation,
   audio: FileAudio,
   image: FileImage,
+  video: FileVideo,
+  text: Pilcrow,
   external: ExternalLink,
   library: Library,
   other: FileQuestion,
@@ -23,10 +29,14 @@ const icons = {
 
 const labels: Record<Material["type"], string> = {
   pdf: "PDF",
+  doc: "DOC",
   docx: "DOCX",
+  ppt: "PPT",
   pptx: "PPTX",
   audio: "Аудио",
   image: "Изображение",
+  video: "Видео",
+  text: "Текст",
   external: "Внешняя ссылка",
   library: "Библиотека",
   other: "Другой формат",

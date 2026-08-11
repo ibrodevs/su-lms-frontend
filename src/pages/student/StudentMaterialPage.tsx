@@ -6,7 +6,9 @@ import {
   FileImage,
   FileQuestion,
   FileText,
+  FileVideo,
   Library,
+  Pilcrow,
   Presentation,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
@@ -24,10 +26,14 @@ interface MaterialRouteParams {
 
 const icons = {
   pdf: FileText,
+  doc: FileText,
   docx: FileText,
+  ppt: Presentation,
   pptx: Presentation,
   audio: FileAudio,
   image: FileImage,
+  video: FileVideo,
+  text: Pilcrow,
   external: ExternalLink,
   library: Library,
   other: FileQuestion,
@@ -35,10 +41,14 @@ const icons = {
 
 const typeLabels: Record<Material["type"], string> = {
   pdf: "PDF-документ",
+  doc: "Документ DOC",
   docx: "Документ DOCX",
+  ppt: "Презентация PPT",
   pptx: "Презентация PPTX",
   audio: "Аудиоматериал",
   image: "Изображение",
+  video: "Видеоматериал",
+  text: "Текстовый материал",
   external: "Внешний ресурс",
   library: "Электронная библиотека",
   other: "Другой формат",
@@ -162,9 +172,21 @@ export default function StudentMaterialPage() {
               {material.description}
             </p>
             <div className="mt-2 flex flex-wrap gap-3 text-xs font-bold text-ash">
+              {course && <span>Курс: {course.title}</span>}
+              {lesson && <span>Урок: {lesson.title}</span>}
               {material.size && <span>{material.size}</span>}
               {material.pageCount && <span>{material.pageCount} страниц</span>}
               {material.duration && <span>{material.duration}</span>}
+              <span>Автор: {material.author ?? course?.instructor.name ?? "SU LMS"}</span>
+              {material.addedAt && (
+                <span>
+                  Добавлено: {new Intl.DateTimeFormat("ru-RU", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  }).format(new Date(material.addedAt))}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -214,7 +236,31 @@ export default function StudentMaterialPage() {
         </section>
       )}
 
-      {(material.type === "docx" || material.type === "pptx") && (
+      {material.type === "video" && material.url && (
+        <section className="grid min-h-80 place-items-center overflow-hidden rounded-brand border-2 border-line bg-navy p-3 sm:p-6">
+          <video
+            className="max-h-[70vh] w-full max-w-4xl rounded-brand"
+            controls
+            preload="metadata"
+            src={material.url}
+          >
+            Ваш браузер не поддерживает видеоплеер.
+          </video>
+        </section>
+      )}
+
+      {material.type === "text" && (
+        <article className="rounded-brand border-2 border-line bg-paper p-6 sm:p-8">
+          <h2 className="text-2xl font-black text-navy">{material.title}</h2>
+          <p className="mt-4 max-w-3xl whitespace-pre-line text-sm leading-7 text-graphite">
+            {material.description}
+          </p>
+        </article>
+      )}
+
+      {(["doc", "docx", "ppt", "pptx"] as const).includes(
+        material.type as "doc" | "docx" | "ppt" | "pptx",
+      ) && (
         <section className="grid min-h-[420px] place-items-center rounded-brand border-2 border-dashed border-line bg-mist p-8 text-center">
           <div className="grid max-w-lg justify-items-center gap-4">
             <span className="grid size-20 place-items-center rounded-brand border-2 border-macaw bg-macaw/10 text-macaw-dark">
@@ -224,8 +270,8 @@ export default function StudentMaterialPage() {
               Preview {material.type.toUpperCase()}
             </h2>
             <p className="text-sm leading-6 text-ash">
-              В статичной версии показывается информация о файле. Полноценный
-              просмотр будет подключён вместе с backend file service.
+              Информация о файле доступна на этой странице. Для полного
+              просмотра откройте или скачайте документ.
             </p>
             {material.url ? (
               <a
@@ -238,7 +284,7 @@ export default function StudentMaterialPage() {
               </a>
             ) : (
               <span className="rounded-brand border-2 border-line bg-paper px-5 py-3 text-sm font-black text-ash">
-                Preview-placeholder
+                Предпросмотр недоступен
               </span>
             )}
           </div>

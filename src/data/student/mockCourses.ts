@@ -7,7 +7,7 @@ const digitalInstructor = {
   bio: "Разрабатывает практические программы по цифровой грамотности и образовательным технологиям.",
 };
 
-export const mockCourses: Course[] = [
+const baseCourses: Course[] = [
   {
     id: "digital-literacy",
     title: "Цифровая грамотность",
@@ -179,3 +179,47 @@ export const mockCourses: Course[] = [
     ],
   },
 ];
+
+const generatedCourseMeta = [
+  ["web-development", "Веб-разработка", "WEB-301", "Факультет цифровых технологий"],
+  ["database-systems", "Базы данных", "DB-210", "Факультет цифровых технологий"],
+  ["software-testing", "Тестирование ПО", "QA-220", "Факультет цифровых технологий"],
+  ["project-management", "Управление проектами", "PM-115", "Школа менеджмента"],
+] as const;
+
+const generatedCourses: Course[] = generatedCourseMeta.map(([id, title, code, faculty], courseIndex) => ({
+  id,
+  title,
+  code,
+  description: `Практический курс ${title.toLowerCase()} с модульной программой и учебными сценариями.`,
+  faculty,
+  program: "Программная инженерия",
+  credits: 4,
+  semester: "Осень 2026",
+  startDate: "2026-09-01",
+  endDate: "2026-12-18",
+  coverImage: "/images/subjects/informatics.svg",
+  accent: (courseIndex % 2 === 0 ? "ecto" : "macaw") as Course["accent"],
+  initialStatus: courseIndex === 0 ? "in-progress" : "not-started",
+  instructor: {
+    name: ["Нурбек Токтогулов", "Мээрим Сапарова", "Руслан Ким", "Данияр Абдрахманов"][courseIndex]!,
+    title: "Преподаватель SU LMS",
+    email: `teacher${courseIndex + 1}@su.edu.kg`,
+    bio: "Практикующий специалист и наставник студенческих проектов.",
+  },
+  syllabus: ["Основы", "Практика", "Итоговый проект"],
+  prerequisites: [],
+  materialIds: [],
+  modules: Array.from({ length: 3 }, (_, moduleIndex) => ({
+    id: `${id}-module-${moduleIndex + 1}`,
+    title: `Модуль ${moduleIndex + 1}. ${moduleIndex === 0 ? "Основы" : moduleIndex === 1 ? "Практика" : "Итоговый проект"}`,
+    description: "Последовательный блок учебных тем и практических занятий.",
+    topics: Array.from({ length: 2 }, (_, topicIndex) => ({
+      id: `${id}-topic-${moduleIndex + 1}-${topicIndex + 1}`,
+      title: `Тема ${moduleIndex + 1}.${topicIndex + 1}`,
+      lessonIds: Array.from({ length: 5 }, (_, lessonIndex) => `${id}-lesson-${moduleIndex + 1}-${topicIndex + 1}-${lessonIndex + 1}`),
+    })),
+  })),
+}));
+
+export const mockCourses: Course[] = [...baseCourses, ...generatedCourses];

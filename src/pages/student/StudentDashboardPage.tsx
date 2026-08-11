@@ -1,8 +1,10 @@
 import {
   ArrowRight,
+  Bell,
   BookOpen,
-  CalendarDays,
   CheckCircle2,
+  ClipboardList,
+  ListChecks,
   Play,
   TrendingUp,
 } from "lucide-react";
@@ -11,6 +13,9 @@ import CourseCard from "../../components/student/CourseCard";
 import CourseProgress from "../../components/student/CourseProgress";
 import PageHeading from "../../components/student/PageHeading";
 import { mockStudent } from "../../data/student/mockStudent";
+import { mockAssignments } from "../../data/student/mockAssignments";
+import { mockNotifications } from "../../data/student/mockNotifications";
+import { mockTests } from "../../data/student/mockTests";
 import { useStudentProgress } from "../../hooks/useStudentProgress";
 import {
   getCourseById,
@@ -29,6 +34,13 @@ const eventLabels = {
   "module-open": "Новый модуль",
   "lesson-open": "Новый урок",
   "lesson-close": "Закрытие доступа",
+  lesson: "Урок",
+  assignment: "Задание",
+  test: "Тест",
+  exam: "Экзамен",
+  deadline: "Дедлайн",
+  event: "Событие",
+  announcement: "Объявление",
 } as const;
 
 const dateFormatter = new Intl.DateTimeFormat("ru-RU", {
@@ -45,6 +57,9 @@ export default function StudentDashboardPage() {
   const activeCourses = courseSummaries.filter(
     ({ progress }) => progress.status === "in-progress",
   );
+  const completedCourses = courseSummaries.filter(
+    ({ progress }) => progress.status === "completed",
+  ).length;
   const totalLessons = courseSummaries.reduce(
     (total, { progress }) => total + progress.total,
     0,
@@ -89,6 +104,21 @@ export default function StudentDashboardPage() {
         new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
     )
     .slice(0, 4);
+  const upcomingAssignments = mockAssignments.filter(
+    (assignment) =>
+      assignment.status !== "submitted" &&
+      assignment.status !== "reviewed" &&
+      new Date(assignment.dueAt).getTime() >= Date.now(),
+  ).length;
+  const availableTests = mockTests.filter(
+    (test) => test.status !== "locked",
+  ).length;
+  const recentNotifications = [...mockNotifications]
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    )
+    .slice(0, 4);
 
   const stats = [
     {
@@ -96,6 +126,12 @@ export default function StudentDashboardPage() {
       label: "Активные курсы",
       value: String(activeCourses.length),
       color: "border-macaw bg-macaw/10 text-macaw-dark",
+    },
+    {
+      icon: CheckCircle2,
+      label: "Завершённые курсы",
+      value: String(completedCourses),
+      color: "border-ecto bg-ecto/10 text-ecto-dark",
     },
     {
       icon: CheckCircle2,
@@ -110,10 +146,16 @@ export default function StudentDashboardPage() {
       color: "border-navy bg-navy/10 text-navy",
     },
     {
-      icon: CalendarDays,
-      label: "Ближайшие события",
-      value: String(upcomingEvents.length),
+      icon: ClipboardList,
+      label: "Предстоящие задания",
+      value: String(upcomingAssignments),
       color: "border-warning bg-warning/10 text-graphite",
+    },
+    {
+      icon: ListChecks,
+      label: "Доступные тесты",
+      value: String(availableTests),
+      color: "border-macaw bg-macaw/10 text-macaw-dark",
     },
   ];
 
@@ -127,7 +169,7 @@ export default function StudentDashboardPage() {
 
       <section
         aria-label="Краткая статистика"
-        className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+        className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
       >
         {stats.map(({ color, icon: Icon, label, value }) => (
           <article
@@ -227,9 +269,9 @@ export default function StudentDashboardPage() {
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
           {upcomingEvents.map((event) => {
             const course = getCourseById(event.courseId);
-            const target = event.lessonId
+            const target = event.target ?? (event.lessonId
               ? `/student/courses/${event.courseId}/lessons/${event.lessonId}`
-              : `/student/courses/${event.courseId}`;
+              : `/student/courses/${event.courseId}`);
 
             return (
               <Link
@@ -256,6 +298,38 @@ export default function StudentDashboardPage() {
               </Link>
             );
           })}
+        </div>
+      </section>
+
+      <section className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <span className="text-xs font-black uppercase tracking-[0.15em] text-ecto-dark">
+              Центр сообщений
+            </span>
+            <h2 className="mt-1 text-2xl font-black text-navy">Последние уведомления</h2>
+          </div>
+          <Link className="inline-flex items-center gap-1 text-sm font-black text-macaw-dark hover:underline" to="/student/notifications">
+            Все уведомления
+            <ArrowRight aria-hidden="true" size={16} />
+          </Link>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          {recentNotifications.map((notification) => (
+            <Link
+              className="flex items-start gap-3 rounded-brand border-2 border-line bg-paper p-4 hover:border-lingot hover:bg-ecto/5"
+              key={notification.id}
+              to={notification.target ?? "/student/notifications"}
+            >
+              <span className="grid size-10 shrink-0 place-items-center rounded-brand border-2 border-macaw bg-macaw/10 text-macaw-dark">
+                <Bell aria-hidden="true" size={17} />
+              </span>
+              <span className="min-w-0">
+                <strong className="block truncate text-sm font-black text-navy">{notification.title}</strong>
+                <span className="mt-1 line-clamp-2 text-xs leading-5 text-ash">{notification.text}</span>
+              </span>
+            </Link>
+          ))}
         </div>
       </section>
     </div>

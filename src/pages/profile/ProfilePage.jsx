@@ -20,6 +20,10 @@ import Input from "../../components/common/Input";
 import Modal from "../../components/common/Modal";
 import PageHeader from "../../components/common/PageHeader";
 import { mockUser } from "../../data/mockUser";
+import {
+  getStudentLocalState,
+  saveProfile as persistProfile,
+} from "../../services/studentStorage";
 
 const profileDetails = [
   { icon: Mail, label: "Email", key: "email" },
@@ -32,10 +36,13 @@ const profileDetails = [
 ];
 
 export default function ProfilePage({ openLogout }) {
-  const [user, setUser] = useState(mockUser);
-  const [draft, setDraft] = useState(mockUser);
+  const persistedProfile = getStudentLocalState().profile;
+  const initialUser = { ...mockUser, ...persistedProfile };
+  const [user, setUser] = useState(initialUser);
+  const [draft, setDraft] = useState(initialUser);
   const [isEditing, setIsEditing] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
+  const [activeTab, setActiveTab] = useState("personal");
   const history = useHistory();
   const initials = `${user.firstName[0]}${user.lastName[0]}`;
   const fullName = `${user.lastName} ${user.firstName} ${user.middleName}`;
@@ -45,9 +52,10 @@ export default function ProfilePage({ openLogout }) {
     setIsEditing(true);
   };
 
-  const saveProfile = (event) => {
+  const handleSaveProfile = (event) => {
     event.preventDefault();
     setUser(draft);
+    persistProfile(draft);
     setIsEditing(false);
     setShowSaved(true);
   };
@@ -91,7 +99,27 @@ export default function ProfilePage({ openLogout }) {
         </div>
       </section>
 
-      <div className="su-profile-grid">
+      <nav aria-label="Разделы профиля" className="su-profile-tabs" role="tablist">
+        {[
+          ["personal", "Личные данные"],
+          ["academic", "Учебная информация"],
+          ["security", "Безопасность"],
+          ["settings", "Настройки"],
+        ].map(([value, label]) => (
+          <button
+            aria-selected={activeTab === value}
+            className={`su-profile-tab ${activeTab === value ? "is-active" : ""}`}
+            key={value}
+            onClick={() => setActiveTab(value)}
+            role="tab"
+            type="button"
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+
+      {activeTab === "personal" && <div className="su-profile-grid">
         <section className="su-panel">
           <header className="su-panel__header">
             <div>
@@ -132,7 +160,39 @@ export default function ProfilePage({ openLogout }) {
             </Button>
           </section>
         </aside>
-      </div>
+      </div>}
+
+      {activeTab === "academic" && (
+        <section className="su-panel">
+          <span className="su-eyebrow">Обучение</span>
+          <h2>Учебная информация</h2>
+          <dl className="su-profile-details">
+            {["Программа", "Группа", "Курс", "Семестр", "Куратор", "Средний балл"].map((label, index) => (
+              <div key={label}><dt>{label}</dt><dd>{[user.program, user.group, "3 курс", user.semester, "Айгүл Токтосунова", "4.6 / 5.0"][index]}</dd></div>
+            ))}
+          </dl>
+        </section>
+      )}
+
+      {activeTab === "security" && (
+        <section className="su-panel">
+          <span className="su-eyebrow">Доступ</span>
+          <h2>Безопасность аккаунта</h2>
+          <p>Изменение пароля выполняется локально в демонстрационном режиме.</p>
+          <Button onClick={() => history.push("/reset-password")} variant="secondary"><LockKeyhole aria-hidden="true" size={17} /> Сменить пароль</Button>
+        </section>
+      )}
+
+      {activeTab === "settings" && (
+        <section className="su-panel">
+          <span className="su-eyebrow">Предпочтения</span>
+          <h2>Настройки профиля</h2>
+          <div className="su-form-grid">
+            <label className="su-field"><span className="su-field__label" htmlFor="profile-language">Язык</span><select className="su-input" id="profile-language" value={user.language} onChange={(event) => { const next = { ...user, language: event.target.value }; setUser(next); persistProfile(next); }}><option>Русский</option><option>Кыргызча</option><option>English</option></select></label>
+            <label className="su-field"><span className="su-field__label" htmlFor="profile-notifications">Внутренние уведомления</span><select className="su-input" id="profile-notifications"><option>Включены</option><option>Только важные</option><option>Выключены</option></select></label>
+          </div>
+        </section>
+      )}
 
       <Modal
         description="Можно изменить только личные данные и язык интерфейса."
@@ -140,7 +200,7 @@ export default function ProfilePage({ openLogout }) {
         onClose={() => setIsEditing(false)}
         title="Редактирование профиля"
       >
-        <form className="su-form" onSubmit={saveProfile}>
+        <form className="su-form" onSubmit={handleSaveProfile}>
           <div className="su-form-grid">
             <Input
               id="last-name"
