@@ -91,6 +91,11 @@ mockCourses.forEach((course) => {
           available: true,
           releaseCondition: getReleaseCondition(lessonIndex, previousLessonId),
           status: lessonIndex % 4 === 0 ? "draft" : "ready",
+          content: `## ${course.title}\n\nИзучите основные понятия урока и выполните практический пример.\n\n- Разберите теорию\n- Сравните подходы\n- Зафиксируйте выводы`,
+          videoKind: lessonIndex % 3 === 0 ? "youtube" : "none",
+          videoUrl: lessonIndex % 3 === 0 ? "https://www.youtube.com/embed/dQw4w9WgXcQ" : undefined,
+          videoTitle: lessonIndex % 3 === 0 ? `Видео к уроку ${courseTopicIndex + 1}.${lessonIndex + 1}` : undefined,
+          videoDescription: lessonIndex % 3 === 0 ? "Краткое объяснение ключевой темы урока." : undefined,
         });
         previousLessonId = lessonId;
       }

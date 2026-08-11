@@ -1,14 +1,24 @@
 import { mockCourseHistory, mockCourses } from "../data/mock/mockCourses";
+import { mockStaffMaterials } from "../data/mock/mockStaffMaterials";
 import { mockLessons, mockModules, mockTopics } from "../data/mock/mockStructure";
-import type { CourseHistoryEvent, StaffStore } from "../types/staff";
+import type { CourseHistoryEvent, CourseLesson, StaffStore } from "../types/staff";
 
 const STORE_KEY = "su-lms-staff-store-v1";
 const STORE_EVENT = "su-lms-staff-store-change";
 
-interface LegacyStaffStore {
+interface LegacyStaffStoreV1 {
   version: 1;
   courses: StaffStore["courses"];
   history: StaffStore["history"];
+}
+
+interface LegacyStaffStoreV2 {
+  version: 2;
+  courses: StaffStore["courses"];
+  history: StaffStore["history"];
+  modules: StaffStore["modules"];
+  topics: StaffStore["topics"];
+  lessons: Array<Omit<CourseLesson, "content" | "videoKind" | "videoUrl" | "videoTitle" | "videoDescription"> & Partial<Pick<CourseLesson, "content" | "videoKind" | "videoUrl" | "videoTitle" | "videoDescription">>>;
 }
 
 let memoryStore: StaffStore | null = null;
@@ -19,30 +29,62 @@ function clone<T>(value: T): T {
 
 export function createDefaultStaffStore(): StaffStore {
   return {
-    version: 2,
+    version: 3,
     courses: clone(mockCourses),
     history: clone(mockCourseHistory),
     modules: clone(mockModules),
     topics: clone(mockTopics),
     lessons: clone(mockLessons),
+    materials: clone(mockStaffMaterials),
   };
 }
 
-function migrateLegacyStore(legacy: LegacyStaffStore): StaffStore {
+function normalizeLesson(lesson: LegacyStaffStoreV2["lessons"][number]): CourseLesson {
+  return {
+    ...lesson,
+    content: lesson.content ?? "",
+    videoKind: lesson.videoKind ?? "none",
+    videoUrl: lesson.videoUrl,
+    videoTitle: lesson.videoTitle,
+    videoDescription: lesson.videoDescription,
+  };
+}
+
+function getMaterialsForLessons(lessonIds: Set<string>): StaffStore["materials"] {
+  return clone(mockStaffMaterials.filter((material) => lessonIds.has(material.lessonId)));
+}
+
+function migrateV1Store(legacy: LegacyStaffStoreV1): StaffStore {
   const courseIds = new Set(legacy.courses.map((course) => course.id));
   const modules = mockModules.filter((module) => courseIds.has(module.courseId));
   const moduleIds = new Set(modules.map((module) => module.id));
   const topics = mockTopics.filter((topic) => moduleIds.has(topic.moduleId));
   const topicIds = new Set(topics.map((topic) => topic.id));
   const lessons = mockLessons.filter((lesson) => topicIds.has(lesson.topicId));
+  const lessonIds = new Set(lessons.map((lesson) => lesson.id));
 
   return {
-    version: 2,
+    version: 3,
     courses: legacy.courses,
     history: legacy.history,
     modules: clone(modules),
     topics: clone(topics),
     lessons: clone(lessons),
+    materials: getMaterialsForLessons(lessonIds),
+  };
+}
+
+function migrateV2Store(legacy: LegacyStaffStoreV2): StaffStore {
+  const lessons = legacy.lessons.map(normalizeLesson);
+  const lessonIds = new Set(lessons.map((lesson) => lesson.id));
+  return {
+    version: 3,
+    courses: legacy.courses,
+    history: legacy.history,
+    modules: legacy.modules,
+    topics: legacy.topics,
+    lessons,
+    materials: getMaterialsForLessons(lessonIds),
   };
 }
 
@@ -60,18 +102,24 @@ export function readStaffStore(): StaffStore {
   }
 
   try {
-    const parsed = JSON.parse(raw) as StaffStore | LegacyStaffStore;
+    const parsed = JSON.parse(raw) as StaffStore | LegacyStaffStoreV1 | LegacyStaffStoreV2;
     if (parsed.version === 1 && Array.isArray(parsed.courses)) {
-      const migrated = migrateLegacyStore(parsed);
+      const migrated = migrateV1Store(parsed);
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(migrated));
+      return migrated;
+    }
+    if (parsed.version === 2 && Array.isArray(parsed.lessons)) {
+      const migrated = migrateV2Store(parsed);
       window.localStorage.setItem(STORE_KEY, JSON.stringify(migrated));
       return migrated;
     }
     if (
-      parsed.version !== 2 ||
+      parsed.version !== 3 ||
       !Array.isArray(parsed.courses) ||
       !Array.isArray(parsed.modules) ||
       !Array.isArray(parsed.topics) ||
-      !Array.isArray(parsed.lessons)
+      !Array.isArray(parsed.lessons) ||
+      !Array.isArray(parsed.materials)
     ) {
       throw new Error("Invalid store");
     }
@@ -132,12 +180,15 @@ export function updateCourseAggregates(
   const topics = store.topics.filter((topic) => moduleIds.has(topic.moduleId));
   const topicIds = new Set(topics.map((topic) => topic.id));
   const lessons = store.lessons.filter((lesson) => topicIds.has(lesson.topicId));
+  const lessonIds = new Set(lessons.map((lesson) => lesson.id));
+  const materials = store.materials.filter((material) => lessonIds.has(material.lessonId));
 
   store.courses[courseIndex] = {
     ...course,
     moduleCount: modules.length,
     topicCount: topics.length,
     lessonCount: lessons.length,
+    materialCount: materials.length,
     updatedAt: new Date().toISOString(),
     updatedBy: userId,
   };

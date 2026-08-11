@@ -3,6 +3,7 @@ import {
   BookOpen,
   ChevronDown,
   FileCheck2,
+  Files,
   GraduationCap,
   Home,
   LogOut,
@@ -33,8 +34,10 @@ const pageTitles: Array<[RegExp, string]> = [
   [/^\/courses\/create$/, "Создание курса"],
   [/^\/courses\/[^/]+\/edit$/, "Редактирование курса"],
   [/^\/courses\/[^/]+\/builder$/, "Структура курса"],
+  [/^\/courses\/[^/]+\/lessons\/[^/]+\/edit$/, "Редактор урока"],
   [/^\/courses\/[^/]+$/, "Карточка курса"],
   [/^\/courses$/, "Курсы"],
+  [/^\/materials$/, "Материалы"],
 ];
 
 interface StaffLayoutProps {
@@ -70,6 +73,7 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
         to: "/courses",
         exact: true,
       },
+      { icon: Files, label: "Материалы", to: "/materials", exact: true },
     ];
     if (role !== "teacher") {
       items.push({

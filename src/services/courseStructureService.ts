@@ -61,6 +61,23 @@ function clearDeletedLessonDependencies(store: StaffStore, deletedLessonIds: Set
   });
 }
 
+function duplicateLessonMaterials(store: StaffStore, lessonIdMap: Map<string, string>): void {
+  const now = new Date().toISOString();
+  lessonIdMap.forEach((copiedLessonId, sourceLessonId) => {
+    store.materials
+      .filter((material) => material.lessonId === sourceLessonId)
+      .forEach((material) => {
+        store.materials.push({
+          ...material,
+          id: createStaffId("material"),
+          lessonId: copiedLessonId,
+          createdAt: now,
+          updatedAt: now,
+        });
+      });
+  });
+}
+
 function moveItem<T extends { id: string; order: number }>(
   collection: T[],
   siblings: T[],
@@ -184,6 +201,7 @@ export function duplicateModule(moduleId: string, userId: string): CourseModule 
       lesson.releaseCondition.afterLessonId = lessonIdMap.get(sourceLessonId);
     }
   });
+  duplicateLessonMaterials(store, lessonIdMap);
   persistStructureChange(store, source.courseId, userId, "Модуль продублирован", duplicate.title);
   return duplicate;
 }
@@ -194,6 +212,7 @@ export function deleteModule(moduleId: string, userId: string): void {
   if (!module) throw new Error("MODULE_NOT_FOUND");
   const topicIds = new Set(store.topics.filter((topic) => topic.moduleId === moduleId).map((topic) => topic.id));
   const lessonIds = new Set(store.lessons.filter((lesson) => topicIds.has(lesson.topicId)).map((lesson) => lesson.id));
+  store.materials = store.materials.filter((material) => !lessonIds.has(material.lessonId));
   store.lessons = store.lessons.filter((lesson) => !topicIds.has(lesson.topicId));
   clearDeletedLessonDependencies(store, lessonIds);
   store.topics = store.topics.filter((topic) => topic.moduleId !== moduleId);
@@ -279,6 +298,7 @@ export function duplicateTopic(topicId: string, userId: string): CourseTopic {
       lesson.releaseCondition.afterLessonId = lessonIdMap.get(sourceLessonId);
     }
   });
+  duplicateLessonMaterials(store, lessonIdMap);
   persistStructureChange(store, courseId, userId, "Тема продублирована", duplicate.title);
   return duplicate;
 }
@@ -290,6 +310,7 @@ export function deleteTopic(topicId: string, userId: string): void {
   const courseId = getCourseIdForModule(store, topic.moduleId);
   if (!courseId) throw new Error("COURSE_NOT_FOUND");
   const lessonIds = new Set(store.lessons.filter((lesson) => lesson.topicId === topicId).map((lesson) => lesson.id));
+  store.materials = store.materials.filter((material) => !lessonIds.has(material.lessonId));
   store.lessons = store.lessons.filter((lesson) => lesson.topicId !== topicId);
   clearDeletedLessonDependencies(store, lessonIds);
   store.topics = store.topics.filter((candidate) => candidate.id !== topicId);
@@ -330,6 +351,11 @@ export function createLesson(topicId: string, input: LessonInput, userId: string
     available: input.available,
     releaseCondition: { ...input.releaseCondition },
     status: input.status,
+    content: input.content.trim(),
+    videoKind: input.videoKind,
+    videoUrl: input.videoUrl?.trim() || undefined,
+    videoTitle: input.videoTitle?.trim() || undefined,
+    videoDescription: input.videoDescription?.trim() || undefined,
   };
   store.lessons.push(lesson);
   persistStructureChange(store, courseId, userId, "Добавлен урок", lesson.title);
@@ -369,6 +395,7 @@ export function duplicateLesson(lessonId: string, userId: string): CourseLesson 
     releaseCondition: { ...source.releaseCondition },
   };
   store.lessons.push(duplicate);
+  duplicateLessonMaterials(store, new Map([[source.id, duplicate.id]]));
   persistStructureChange(store, courseId, userId, "Урок продублирован", duplicate.title);
   return duplicate;
 }
@@ -379,6 +406,7 @@ export function deleteLesson(lessonId: string, userId: string): void {
   if (!lesson) throw new Error("LESSON_NOT_FOUND");
   const courseId = getCourseIdForLesson(store, lessonId);
   if (!courseId) throw new Error("COURSE_NOT_FOUND");
+  store.materials = store.materials.filter((material) => material.lessonId !== lessonId);
   store.lessons = store.lessons.filter((candidate) => candidate.id !== lessonId);
   clearDeletedLessonDependencies(store, new Set([lessonId]));
   sortByOrder(store.lessons.filter((candidate) => candidate.topicId === lesson.topicId)).forEach((candidate, index) => {

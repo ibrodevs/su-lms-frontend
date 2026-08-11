@@ -1,6 +1,7 @@
-import { BookOpenText, CalendarDays, FileText, FolderTree, Save, X } from "lucide-react";
+import { ArrowUpRight, BookOpenText, CalendarDays, FileText, FolderTree, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
+import { Link } from "react-router-dom";
 import {
   createLesson,
   createModule,
@@ -176,19 +177,20 @@ function TopicForm({ onCancel, onSaved, selection, structure, userId }: TopicFor
   );
 }
 
-interface LessonFormProps extends Omit<StructureEditorProps, "courseId"> {
+interface LessonFormProps extends StructureEditorProps {
   selection: StructureSelection;
 }
 
 const lessonTypeLabels: Record<LessonType, string> = { text: "Текст", video: "Видео", material: "Материал", mixed: "Смешанный", "external-link": "Внешняя ссылка" };
+const emptyLessonInput: LessonInput = { title: "", description: "", type: "text", durationMinutes: 15, available: true, releaseCondition: { type: "always" }, status: "draft", content: "", videoKind: "none" };
 
-function LessonForm({ onCancel, onSaved, selection, structure, userId }: LessonFormProps) {
+function LessonForm({ courseId, onCancel, onSaved, selection, structure, userId }: LessonFormProps) {
   const existing = selection.id ? structure.lessons.find((lesson) => lesson.id === selection.id) : undefined;
-  const [form, setForm] = useState<LessonInput>({ title: "", description: "", type: "text", durationMinutes: 15, available: true, releaseCondition: { type: "always" }, status: "draft" });
+  const [form, setForm] = useState<LessonInput>(emptyLessonInput);
   const [errors, setErrors] = useState<{ title?: string; duration?: string }>({});
 
   useEffect(() => {
-    setForm(existing ? { title: existing.title, description: existing.description, type: existing.type, durationMinutes: existing.durationMinutes, available: existing.available, releaseCondition: { ...existing.releaseCondition }, status: existing.status } : { title: "", description: "", type: "text", durationMinutes: 15, available: true, releaseCondition: { type: "always" }, status: "draft" });
+    setForm(existing ? { title: existing.title, description: existing.description, type: existing.type, durationMinutes: existing.durationMinutes, available: existing.available, releaseCondition: { ...existing.releaseCondition }, status: existing.status, content: existing.content, videoKind: existing.videoKind, videoUrl: existing.videoUrl, videoTitle: existing.videoTitle, videoDescription: existing.videoDescription } : emptyLessonInput);
     setErrors({});
   }, [existing]);
 
@@ -207,6 +209,7 @@ function LessonForm({ onCancel, onSaved, selection, structure, userId }: LessonF
   return (
     <form className="grid gap-5" noValidate onSubmit={submit}>
       <EditorHeader icon={FileText} onCancel={onCancel} subtitle="Задайте тип, длительность, статус и условия открытия урока." title={existing ? "Редактирование урока" : "Новый урок"} />
+      {existing ? <Link className="inline-flex min-h-11 items-center justify-center gap-2 rounded-brand border-2 border-macaw px-4 text-sm font-black text-macaw-dark hover:bg-macaw/10" to={`/courses/${courseId}/lessons/${existing.id}/edit`}>Открыть редактор контента <ArrowUpRight aria-hidden="true" size={17} /></Link> : null}
       <Field error={errors.title} label="Название урока" required><input autoFocus className={inputClasses(errors.title)} onChange={(event) => { setForm((current) => ({ ...current, title: event.target.value })); setErrors((current) => ({ ...current, title: undefined })); }} placeholder="Например, Первый React-компонент" value={form.title} /></Field>
       <Field label="Описание"><textarea className={`${inputClasses()} min-h-28 resize-y py-3`} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} placeholder="Цель и ожидаемый результат урока" value={form.description} /></Field>
       <div className="grid gap-4 sm:grid-cols-3"><Field label="Тип урока"><select className={inputClasses()} onChange={(event) => setForm((current) => ({ ...current, type: event.target.value as LessonType }))} value={form.type}>{(Object.entries(lessonTypeLabels) as Array<[LessonType, string]>).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></Field><Field error={errors.duration} label="Длительность, мин"><input className={inputClasses(errors.duration)} min="1" max="600" onChange={(event) => setForm((current) => ({ ...current, durationMinutes: Number(event.target.value) }))} type="number" value={form.durationMinutes} /></Field><Field label="Статус"><select className={inputClasses()} onChange={(event) => setForm((current) => ({ ...current, status: event.target.value as LessonStatus }))} value={form.status}><option value="draft">Черновик</option><option value="ready">Готов</option></select></Field></div>

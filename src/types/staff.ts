@@ -41,6 +41,19 @@ export interface CourseTopic {
 
 export type LessonType = "text" | "video" | "material" | "mixed" | "external-link";
 export type LessonStatus = "draft" | "ready";
+export type LessonVideoKind = "none" | "youtube" | "placeholder";
+
+export type StaffMaterialType =
+  | "pdf"
+  | "docx"
+  | "pptx"
+  | "image"
+  | "audio"
+  | "video"
+  | "external"
+  | "library";
+
+export type StaffMaterialAvailability = "available" | "unavailable" | "error";
 
 export interface CourseLesson {
   id: string;
@@ -53,6 +66,29 @@ export interface CourseLesson {
   available: boolean;
   releaseCondition: ReleaseCondition;
   status: LessonStatus;
+  content: string;
+  videoKind: LessonVideoKind;
+  videoUrl?: string;
+  videoTitle?: string;
+  videoDescription?: string;
+}
+
+export interface StaffMaterial {
+  id: string;
+  lessonId: string;
+  title: string;
+  description: string;
+  type: StaffMaterialType;
+  order: number;
+  fileName?: string;
+  sizeBytes?: number;
+  url?: string;
+  pageCount?: number;
+  durationMinutes?: number;
+  downloadAllowed: boolean;
+  availability: StaffMaterialAvailability;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ModuleInput {
@@ -76,6 +112,24 @@ export interface LessonInput {
   available: boolean;
   releaseCondition: ReleaseCondition;
   status: LessonStatus;
+  content: string;
+  videoKind: LessonVideoKind;
+  videoUrl?: string;
+  videoTitle?: string;
+  videoDescription?: string;
+}
+
+export interface MaterialInput {
+  title: string;
+  description: string;
+  type: StaffMaterialType;
+  fileName?: string;
+  sizeBytes?: number;
+  url?: string;
+  pageCount?: number;
+  durationMinutes?: number;
+  downloadAllowed: boolean;
+  availability: StaffMaterialAvailability;
 }
 
 export interface CourseStructure {
@@ -204,12 +258,13 @@ export interface StaffSession {
 }
 
 export interface StaffStore {
-  version: 2;
+  version: 3;
   courses: Course[];
   history: CourseHistoryEvent[];
   modules: CourseModule[];
   topics: CourseTopic[];
   lessons: CourseLesson[];
+  materials: StaffMaterial[];
 }
 
 export interface CourseReadiness {

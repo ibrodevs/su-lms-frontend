@@ -37,6 +37,7 @@ import {
   subscribeCourseStore,
 } from "../../services/courseService";
 import { getStaffSession } from "../../services/staffSession";
+import { getCourseMaterials } from "../../services/materialService";
 import type { CourseStatus } from "../../types/staff";
 import { cn } from "../../utils/cn";
 
@@ -72,6 +73,7 @@ export default function StaffCourseDetailPage() {
   useEffect(() => subscribeCourseStore(() => setRevision((value) => value + 1)), []);
   const course = getCourse(courseId);
   const history = getCourseHistory(courseId);
+  const materials = getCourseMaterials(courseId);
   const readiness = useMemo(() => (course ? getCourseReadiness(course) : null), [course]);
   const closeToast = useCallback(() => setToast(null), []);
 
@@ -265,8 +267,9 @@ export default function StaffCourseDetailPage() {
 
       {activeTab === "materials" ? (
         <section className="rounded-brand border-2 border-line bg-paper p-5 lg:p-7">
-          <div className="flex items-center gap-3"><FileText aria-hidden="true" className="text-macaw-dark" /><div><h2 className="text-xl font-black text-navy">Материалы курса</h2><p className="mt-1 text-sm text-ash">В курс добавлено материалов: {course.materialCount}</p></div></div>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex items-center gap-3"><FileText aria-hidden="true" className="text-macaw-dark" /><div><h2 className="text-xl font-black text-navy">Материалы курса</h2><p className="mt-1 text-sm text-ash">В курс добавлено материалов: {course.materialCount}</p></div></div><Link className="inline-flex min-h-10 items-center justify-center rounded-brand border-2 border-ecto px-4 text-xs font-black text-ecto-dark hover:bg-ecto/10" to="/materials">Открыть все материалы</Link></div>
           {course.syllabusName ? <div className="mt-5 rounded-brand border-2 border-line p-4"><span className="text-xs font-bold text-ash">Syllabus</span><strong className="mt-1 block text-sm font-black text-graphite">{course.syllabusName}</strong></div> : <p className="mt-5 rounded-brand bg-mist p-4 text-sm text-ash">Syllabus ещё не загружен.</p>}
+          <div className="mt-5 grid gap-3 md:grid-cols-2">{materials.slice(0, 6).map((material) => <Link className="rounded-brand border-2 border-line p-4 hover:border-macaw" key={material.id} to={`/courses/${course.id}/lessons/${material.lessonId}/edit`}><span className="text-[10px] font-black uppercase tracking-wider text-macaw-dark">{material.type.toUpperCase()}</span><strong className="mt-1 block truncate text-sm font-black text-graphite">{material.title}</strong><span className="mt-1 block truncate text-xs text-ash">{material.fileName ?? material.url ?? "Mock-источник"}</span></Link>)}</div>
         </section>
       ) : null}
 

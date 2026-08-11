@@ -49,6 +49,8 @@ const lessonInput: LessonInput = {
   available: true,
   releaseCondition: { type: "always" },
   status: "ready",
+  content: "## Тестовый урок",
+  videoKind: "none",
 };
 
 function createEmptyCourse() {
