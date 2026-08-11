@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Redirect, Route, Switch } from "react-router-dom";
 import AuthLayout from "./layouts/AuthLayout";
 import StudentLayout from "./layouts/StudentLayout";
@@ -7,17 +8,41 @@ import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import LoginPage from "./pages/auth/LoginPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import ProfilePage from "./pages/profile/ProfilePage";
-import StudentCalendarPage from "./pages/student/StudentCalendarPage";
-import StudentCoursePage from "./pages/student/StudentCoursePage";
-import StudentCoursesPage from "./pages/student/StudentCoursesPage";
-import StudentDashboardPage from "./pages/student/StudentDashboardPage";
-import StudentLessonPage from "./pages/student/StudentLessonPage";
-import StudentMaterialPage from "./pages/student/StudentMaterialPage";
-import StudentProgressPage from "./pages/student/StudentProgressPage";
+import { getStudentLocalState } from "./services/studentStorage";
+const StudentCalendarPage = lazy(() => import("./pages/student/StudentCalendarPage"));
+const StudentCoursePage = lazy(() => import("./pages/student/StudentCoursePage"));
+const StudentCoursesPage = lazy(() => import("./pages/student/StudentCoursesPage"));
+const StudentDashboardPage = lazy(() => import("./pages/student/StudentDashboardPage"));
+const StudentLessonPage = lazy(() => import("./pages/student/StudentLessonPage"));
+const StudentMaterialPage = lazy(() => import("./pages/student/StudentMaterialPage"));
+const StudentProgressPage = lazy(() => import("./pages/student/StudentProgressPage"));
+const StudentAssignmentsPage = lazy(() => import("./pages/student/StudentAssignmentsPage"));
+const StudentAssignmentDetailPage = lazy(() => import("./pages/student/StudentAssignmentDetailPage"));
+const StudentTestsPage = lazy(() => import("./pages/student/StudentTestsPage"));
+const StudentTestRunPage = lazy(() => import("./pages/student/StudentTestRunPage"));
+const StudentTestResultPage = lazy(() => import("./pages/student/StudentTestResultPage"));
+const StudentSchedulePage = lazy(() => import("./pages/student/StudentSchedulePage"));
+const StudentNotificationsPage = lazy(() => import("./pages/student/StudentNotificationsPage"));
+
+function RouteLoading() {
+  return (
+    <div className="student-theme grid min-h-screen place-items-center p-6">
+      <div className="grid justify-items-center gap-3 text-center">
+        <span className="size-10 animate-pulse rounded-full border-4 border-ecto border-t-transparent" />
+        <p className="text-sm font-black text-ash">Загрузка раздела…</p>
+      </div>
+    </div>
+  );
+}
+
+function ProtectedRoute({ children }) {
+  return getStudentLocalState().authenticated ? children : <Redirect to="/login" />;
+}
 
 export default function App() {
   return (
-    <Switch>
+    <Suspense fallback={<RouteLoading />}>
+      <Switch>
       <Route path="/login">
         <AuthLayout>
           <LoginPage />
@@ -34,8 +59,9 @@ export default function App() {
         </AuthLayout>
       </Route>
       <Route path="/student">
-        <StudentLayout>
-          <Switch>
+        <ProtectedRoute>
+          <StudentLayout>
+            <Switch>
             <Route exact path="/student">
               <StudentDashboardPage />
             </Route>
@@ -60,16 +86,40 @@ export default function App() {
             <Route exact path="/student/calendar">
               <StudentCalendarPage />
             </Route>
+            <Route exact path="/student/schedule">
+              <StudentSchedulePage />
+            </Route>
+            <Route exact path="/student/assignments">
+              <StudentAssignmentsPage />
+            </Route>
+            <Route exact path="/student/assignments/:assignmentId">
+              <StudentAssignmentDetailPage />
+            </Route>
+            <Route exact path="/student/tests">
+              <StudentTestsPage />
+            </Route>
+            <Route exact path="/student/tests/:testId/result">
+              <StudentTestResultPage />
+            </Route>
+            <Route exact path="/student/tests/:testId">
+              <StudentTestRunPage />
+            </Route>
+            <Route exact path="/student/notifications">
+              <StudentNotificationsPage />
+            </Route>
             <Route>
               <NotFoundPage />
             </Route>
-          </Switch>
-        </StudentLayout>
+            </Switch>
+          </StudentLayout>
+        </ProtectedRoute>
       </Route>
       <Route path="/profile">
-        <StudentLayout>
-          {({ openLogout }) => <ProfilePage openLogout={openLogout} />}
-        </StudentLayout>
+        <ProtectedRoute>
+          <StudentLayout>
+            {({ openLogout }) => <ProfilePage openLogout={openLogout} />}
+          </StudentLayout>
+        </ProtectedRoute>
       </Route>
       <Route path="/403">
         <ForbiddenPage />
@@ -78,6 +128,7 @@ export default function App() {
       <Route>
         <NotFoundPage />
       </Route>
-    </Switch>
+      </Switch>
+    </Suspense>
   );
 }

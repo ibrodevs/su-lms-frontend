@@ -1,11 +1,14 @@
 import {
   ArrowRight,
+  Award,
   BookOpen,
   CheckCircle2,
   ChevronDown,
+  ClipboardList,
   Clock3,
   LockKeyhole,
   Play,
+  ListChecks,
   TrendingUp,
 } from "lucide-react";
 import { useState } from "react";
@@ -13,16 +16,27 @@ import { Link } from "react-router-dom";
 import CourseProgress from "../../components/student/CourseProgress";
 import PageHeading from "../../components/student/PageHeading";
 import StatusBadge from "../../components/student/StatusBadge";
+import { mockActivity } from "../../data/student/mockActivity";
+import { mockAssignments } from "../../data/student/mockAssignments";
+import { mockTests } from "../../data/student/mockTests";
 import { useStudentProgress } from "../../hooks/useStudentProgress";
 import {
   getLessonById,
   getLessonsForCourse,
+  getCourseById,
   mockCourses,
 } from "../../services/studentCatalog";
 import {
   getCourseProgress,
   getResolvedLessonStatus,
 } from "../../services/studentProgress";
+import { getStudentLocalState } from "../../services/studentStorage";
+
+const activityFormatter = new Intl.DateTimeFormat("ru-RU", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "Asia/Almaty",
+});
 
 export default function StudentProgressPage() {
   const { state } = useStudentProgress();
@@ -47,9 +61,24 @@ export default function StudentProgressPage() {
   const activeCourses = summaries.filter(
     (item) => item.progress.status === "in-progress",
   ).length;
-  const lastLesson = state.lastLessonId
-    ? getLessonById(state.lastLessonId)
-    : null;
+  const completedCourses = summaries.filter(
+    (item) => item.progress.status === "completed",
+  ).length;
+  const localState = getStudentLocalState();
+  const completedAssignments = mockAssignments.filter((assignment) => {
+    const status = localState.assignments[assignment.id]?.status ?? assignment.status;
+    return status === "submitted" || status === "reviewed";
+  }).length;
+  const testResults = Object.values(localState.testResults).filter((result) =>
+    mockTests.some((test) => test.id === result.testId),
+  );
+  const passedTests = testResults.filter((result) => result.passed).length;
+  const averageTestResult = testResults.length
+    ? Math.round(
+        testResults.reduce((total, result) => total + result.percent, 0) /
+          testResults.length,
+      )
+    : 0;
 
   return (
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-7">
@@ -96,13 +125,24 @@ export default function StudentProgressPage() {
           </span>
         </article>
         <article className="rounded-brand border-2 border-line bg-paper p-5">
-          <Clock3 aria-hidden="true" className="text-navy" size={24} />
-          <strong className="mt-4 block truncate text-base font-black text-navy">
-            {lastLesson?.title ?? "Нет активности"}
-          </strong>
-          <span className="text-xs font-bold text-ash">
-            Последний открытый урок
-          </span>
+          <Award aria-hidden="true" className="text-navy" size={24} />
+          <strong className="mt-4 block text-3xl font-black text-navy">{completedCourses}</strong>
+          <span className="text-xs font-bold text-ash">Завершённые курсы</span>
+        </article>
+        <article className="rounded-brand border-2 border-line bg-paper p-5">
+          <ClipboardList aria-hidden="true" className="text-ecto-dark" size={24} />
+          <strong className="mt-4 block text-3xl font-black text-navy">{completedAssignments}</strong>
+          <span className="text-xs font-bold text-ash">Выполненные задания</span>
+        </article>
+        <article className="rounded-brand border-2 border-line bg-paper p-5">
+          <ListChecks aria-hidden="true" className="text-macaw-dark" size={24} />
+          <strong className="mt-4 block text-3xl font-black text-navy">{passedTests}</strong>
+          <span className="text-xs font-bold text-ash">Пройденные тесты</span>
+        </article>
+        <article className="rounded-brand border-2 border-line bg-paper p-5">
+          <TrendingUp aria-hidden="true" className="text-warning" size={24} />
+          <strong className="mt-4 block text-3xl font-black text-navy">{averageTestResult}%</strong>
+          <span className="text-xs font-bold text-ash">Средний результат</span>
         </article>
       </section>
 
@@ -310,6 +350,31 @@ export default function StudentProgressPage() {
             </article>
           );
         })}
+      </section>
+
+      <section className="grid gap-4">
+        <div>
+          <span className="text-xs font-black uppercase tracking-[0.14em] text-ecto-dark">История</span>
+          <h2 className="mt-1 text-2xl font-black text-navy">Последняя активность</h2>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          {mockActivity.map((activity) => {
+            const activityCourse = getCourseById(activity.courseId);
+            const target = activity.lessonId
+              ? `/student/courses/${activity.courseId}/lessons/${activity.lessonId}`
+              : `/student/courses/${activity.courseId}`;
+            return (
+              <Link className="rounded-brand border-2 border-line bg-paper p-4 hover:border-lingot hover:bg-ecto/5" key={activity.id} to={target}>
+                <div className="flex items-center justify-between gap-3">
+                  <strong className="text-sm font-black text-navy">{activity.title}</strong>
+                  <time className="shrink-0 text-[10px] font-black text-ash">{activityFormatter.format(new Date(activity.occurredAt))}</time>
+                </div>
+                <p className="mt-2 text-xs leading-5 text-ash">{activity.description}</p>
+                <span className="mt-2 block text-[10px] font-black uppercase tracking-wider text-macaw-dark">{activityCourse?.title}</span>
+              </Link>
+            );
+          })}
+        </div>
       </section>
     </div>
   );

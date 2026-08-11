@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import QuizQuestion from "../components/QuizQuestion";
@@ -43,7 +43,7 @@ export default function LessonQuizPage() {
     navigate(`/subjects/${subject.id}/lessons/${lesson.id}/quiz/result`);
   };
 
-  const title = useMemo(() => `${lesson.quiz.title} · ${lesson.title}`, [lesson]);
+  const title = `${lesson.quiz.title} · ${lesson.title}`;
 
   return (
     <main className="quiz-page">

@@ -2,21 +2,22 @@
 
 @theme {
   --color-ecto: #58cc02;
-  --color-ecto-dark: #46a302;
+  --color-ecto-dark: #2f7200;
   --color-lingot: #a5ed6e;
   --color-eel: #d7ffb8;
   --color-macaw: #1cb0f6;
-  --color-macaw-dark: #168fcc;
+  --color-macaw-dark: #0b668f;
   --color-navy: #042c60;
   --color-midnight: #000437;
   --color-graphite: #3c3c3c;
-  --color-ash: #777777;
+  --color-ash: #6f6f6f;
   --color-charcoal: #4b4b4b;
   --color-paper: #ffffff;
   --color-mist: #f7f7f7;
   --color-line: #e5e5e5;
   --color-warning: #ffb800;
-  --color-danger: #ea2b2b;
+  --color-warning-dark: #765500;
+  --color-danger: #c91d1d;
   --font-rounded: "Nunito", "Arial Rounded MT Bold", ui-rounded, system-ui, sans-serif;
   --radius-brand: 0.75rem;
 }

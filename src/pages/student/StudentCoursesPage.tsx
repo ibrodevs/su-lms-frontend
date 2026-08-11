@@ -9,12 +9,14 @@ import { getCourseProgress } from "../../services/studentProgress";
 import type { CourseStatus } from "../../types/student";
 
 type StatusFilter = "all" | CourseStatus;
+type SortMode = "title" | "progress-desc" | "progress-asc";
 
 const statusOptions: Array<{ label: string; value: StatusFilter }> = [
   { label: "Все", value: "all" },
   { label: "Не начаты", value: "not-started" },
   { label: "В процессе", value: "in-progress" },
   { label: "Завершённые", value: "completed" },
+  { label: "Заблокированные", value: "locked" },
 ];
 
 export default function StudentCoursesPage() {
@@ -22,6 +24,7 @@ export default function StudentCoursesPage() {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [semester, setSemester] = useState("all");
+  const [sortMode, setSortMode] = useState<SortMode>("title");
   const semesters = Array.from(
     new Set(mockCourses.map((course) => course.semester)),
   );
@@ -42,13 +45,21 @@ export default function StudentCoursesPage() {
         semester === "all" || course.semester === semester;
 
       return matchesQuery && matchesStatus && matchesSemester;
+    }).sort((left, right) => {
+      if (sortMode === "title") return left.title.localeCompare(right.title, "ru");
+      const leftProgress = getCourseProgress(left, state).percent;
+      const rightProgress = getCourseProgress(right, state).percent;
+      return sortMode === "progress-desc"
+        ? rightProgress - leftProgress
+        : leftProgress - rightProgress;
     });
-  }, [query, semester, state, status]);
+  }, [query, semester, sortMode, state, status]);
 
   const resetFilters = () => {
     setQuery("");
     setStatus("all");
     setSemester("all");
+    setSortMode("title");
   };
 
   return (
@@ -59,7 +70,7 @@ export default function StudentCoursesPage() {
         title={`Мои курсы · ${mockCourses.length}`}
       />
 
-      <section className="grid gap-4 rounded-brand border-2 border-line bg-mist p-4 lg:grid-cols-[minmax(260px,1fr)_auto_auto]">
+      <section className="grid gap-4 rounded-brand border-2 border-line bg-mist p-4 lg:grid-cols-[minmax(260px,1fr)_auto_auto_auto]">
         <label className="relative block">
           <span className="sr-only">Поиск курсов</span>
           <Search
@@ -74,6 +85,19 @@ export default function StudentCoursesPage() {
             type="search"
             value={query}
           />
+        </label>
+
+        <label className="grid gap-1">
+          <span className="sr-only">Сортировка курсов</span>
+          <select
+            className="h-12 min-w-44 rounded-brand border-2 border-line bg-paper px-3 text-sm font-extrabold text-graphite focus:border-macaw focus:outline-none"
+            onChange={(event) => setSortMode(event.target.value as SortMode)}
+            value={sortMode}
+          >
+            <option value="title">По названию</option>
+            <option value="progress-desc">Прогресс: сначала высокий</option>
+            <option value="progress-asc">Прогресс: сначала низкий</option>
+          </select>
         </label>
 
         <label className="grid gap-1">
