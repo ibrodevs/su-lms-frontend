@@ -8,6 +8,82 @@ export type CourseStatus =
 
 export type CourseLanguage = "ru" | "ky" | "en";
 
+export type ReleaseConditionType =
+  | "always"
+  | "after-previous"
+  | "after-lesson"
+  | "date";
+
+export interface ReleaseCondition {
+  type: ReleaseConditionType;
+  afterLessonId?: string;
+  availableFrom?: string;
+}
+
+export interface CourseModule {
+  id: string;
+  courseId: string;
+  title: string;
+  description: string;
+  order: number;
+  openDate?: string;
+  closeDate?: string;
+  releaseCondition: ReleaseCondition;
+}
+
+export interface CourseTopic {
+  id: string;
+  moduleId: string;
+  title: string;
+  description: string;
+  order: number;
+}
+
+export type LessonType = "text" | "video" | "material" | "mixed" | "external-link";
+export type LessonStatus = "draft" | "ready";
+
+export interface CourseLesson {
+  id: string;
+  topicId: string;
+  title: string;
+  description: string;
+  type: LessonType;
+  durationMinutes: number;
+  order: number;
+  available: boolean;
+  releaseCondition: ReleaseCondition;
+  status: LessonStatus;
+}
+
+export interface ModuleInput {
+  title: string;
+  description: string;
+  openDate?: string;
+  closeDate?: string;
+  releaseCondition: ReleaseCondition;
+}
+
+export interface TopicInput {
+  title: string;
+  description: string;
+}
+
+export interface LessonInput {
+  title: string;
+  description: string;
+  type: LessonType;
+  durationMinutes: number;
+  available: boolean;
+  releaseCondition: ReleaseCondition;
+  status: LessonStatus;
+}
+
+export interface CourseStructure {
+  modules: CourseModule[];
+  topics: CourseTopic[];
+  lessons: CourseLesson[];
+}
+
 export interface StaffUser {
   id: string;
   firstName: string;
@@ -128,9 +204,12 @@ export interface StaffSession {
 }
 
 export interface StaffStore {
-  version: 1;
+  version: 2;
   courses: Course[];
   history: CourseHistoryEvent[];
+  modules: CourseModule[];
+  topics: CourseTopic[];
+  lessons: CourseLesson[];
 }
 
 export interface CourseReadiness {

@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Edit3,
   FileText,
+  FolderTree,
   Layers3,
   RotateCcw,
   Send,
@@ -162,6 +163,9 @@ export default function StaffCourseDetailPage() {
             ) : null}
           </div>
           <div className="flex flex-wrap gap-2 lg:max-w-sm lg:justify-end">
+            <Link className="inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-ecto px-4 text-sm font-black text-ecto-dark hover:bg-ecto/10" to={`/courses/${course.id}/builder`}>
+              <FolderTree aria-hidden="true" size={17} /> Открыть Builder
+            </Link>
             <Link className="inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-line px-4 text-sm font-black text-graphite hover:border-lingot" to={`/courses/${course.id}/edit`}>
               <Edit3 aria-hidden="true" size={17} /> Редактировать
             </Link>
@@ -255,6 +259,7 @@ export default function StaffCourseDetailPage() {
             <StructureStat label="Тем" value={course.topicCount} />
             <StructureStat label="Уроков" value={course.lessonCount} />
           </div>
+          <Link className="student-pressable mt-5 inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-ecto-dark bg-ecto px-4 text-sm font-black text-white" to={`/courses/${course.id}/builder`}><FolderTree aria-hidden="true" size={17} /> Управлять структурой</Link>
         </section>
       ) : null}
 

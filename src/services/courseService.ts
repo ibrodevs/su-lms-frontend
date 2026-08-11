@@ -1,4 +1,3 @@
-import { mockCourseHistory, mockCourses } from "../data/mock/mockCourses";
 import type {
   Course,
   CourseFilters,
@@ -7,87 +6,18 @@ import type {
   CourseReadiness,
   CourseStatus,
   StaffRole,
-  StaffStore,
 } from "../types/staff";
-
-const STORE_KEY = "su-lms-staff-store-v1";
-const STORE_EVENT = "su-lms-staff-store-change";
-
-let memoryStore: StaffStore | null = null;
-
-function clone<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value)) as T;
-}
-
-function createDefaultStore(): StaffStore {
-  return {
-    version: 1,
-    courses: clone(mockCourses),
-    history: clone(mockCourseHistory),
-  };
-}
-
-function readStore(): StaffStore {
-  if (typeof window === "undefined") {
-    memoryStore ??= createDefaultStore();
-    return clone(memoryStore);
-  }
-
-  const raw = window.localStorage.getItem(STORE_KEY);
-  if (!raw) {
-    const initial = createDefaultStore();
-    window.localStorage.setItem(STORE_KEY, JSON.stringify(initial));
-    return initial;
-  }
-
-  try {
-    const parsed = JSON.parse(raw) as StaffStore;
-    if (parsed.version !== 1 || !Array.isArray(parsed.courses)) throw new Error("Invalid store");
-    return parsed;
-  } catch {
-    const initial = createDefaultStore();
-    window.localStorage.setItem(STORE_KEY, JSON.stringify(initial));
-    return initial;
-  }
-}
-
-function writeStore(store: StaffStore): void {
-  if (typeof window === "undefined") {
-    memoryStore = clone(store);
-    return;
-  }
-  window.localStorage.setItem(STORE_KEY, JSON.stringify(store));
-  window.dispatchEvent(new Event(STORE_EVENT));
-}
-
-function createId(prefix: string): string {
-  const randomId = typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  return `${prefix}-${randomId}`;
-}
-
-function addHistory(
-  store: StaffStore,
-  courseId: string,
-  userId: string,
-  action: string,
-  details?: string,
-): CourseHistoryEvent {
-  const event: CourseHistoryEvent = {
-    id: createId("history"),
-    courseId,
-    userId,
-    action,
-    details,
-    createdAt: new Date().toISOString(),
-  };
-  store.history.unshift(event);
-  return event;
-}
+import {
+  appendCourseHistory,
+  createStaffId,
+  readStaffStore,
+  resetStaffStore,
+  subscribeStaffStore,
+  writeStaffStore,
+} from "./staffStore";
 
 export function getCourses(): Course[] {
-  return readStore().courses;
+  return readStaffStore().courses;
 }
 
 export function getVisibleCourses(role: StaffRole, userId: string): Course[] {
@@ -102,7 +32,7 @@ export function getCourse(courseId: string): Course | null {
 }
 
 export function getCourseHistory(courseId: string): CourseHistoryEvent[] {
-  return readStore().history
+  return readStaffStore().history
     .filter((event) => event.courseId === courseId)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
@@ -118,11 +48,11 @@ export function isCourseCodeUnique(code: string, ignoredCourseId?: string): bool
 export function createCourse(input: CourseInput, userId: string): Course {
   if (!isCourseCodeUnique(input.code)) throw new Error("COURSE_CODE_EXISTS");
 
-  const store = readStore();
+  const store = readStaffStore();
   const now = new Date().toISOString();
   const course: Course = {
     ...input,
-    id: createId("course"),
+    id: createStaffId("course"),
     code: input.code.trim().toUpperCase(),
     title: input.title.trim(),
     description: input.description.trim(),
@@ -137,15 +67,15 @@ export function createCourse(input: CourseInput, userId: string): Course {
     updatedBy: userId,
   };
   store.courses.unshift(course);
-  addHistory(store, course.id, userId, "Создан курс");
-  writeStore(store);
+  appendCourseHistory(store, course.id, userId, "Создан курс");
+  writeStaffStore(store);
   return course;
 }
 
 export function updateCourse(courseId: string, input: CourseInput, userId: string): Course {
   if (!isCourseCodeUnique(input.code, courseId)) throw new Error("COURSE_CODE_EXISTS");
 
-  const store = readStore();
+  const store = readStaffStore();
   const index = store.courses.findIndex((course) => course.id === courseId);
   const existing = store.courses[index];
   if (!existing) throw new Error("COURSE_NOT_FOUND");
@@ -160,8 +90,8 @@ export function updateCourse(courseId: string, input: CourseInput, userId: strin
     updatedBy: userId,
   };
   store.courses[index] = updated;
-  addHistory(store, courseId, userId, "Обновлена информация курса");
-  writeStore(store);
+  appendCourseHistory(store, courseId, userId, "Обновлена информация курса");
+  writeStaffStore(store);
   return updated;
 }
 
@@ -171,7 +101,7 @@ export function changeCourseStatus(
   userId: string,
   details?: string,
 ): Course {
-  const store = readStore();
+  const store = readStaffStore();
   const index = store.courses.findIndex((course) => course.id === courseId);
   const existing = store.courses[index];
   if (!existing) throw new Error("COURSE_NOT_FOUND");
@@ -192,8 +122,8 @@ export function changeCourseStatus(
     updatedBy: userId,
   };
   store.courses[index] = updated;
-  addHistory(store, courseId, userId, actionByStatus[status], details);
-  writeStore(store);
+  appendCourseHistory(store, courseId, userId, actionByStatus[status], details);
+  writeStaffStore(store);
   return updated;
 }
 
@@ -248,23 +178,9 @@ export function canSubmitForReview(course: Course): boolean {
 }
 
 export function resetCourseManagementData(): void {
-  const initial = createDefaultStore();
-  memoryStore = initial;
-  if (typeof window !== "undefined") {
-    window.localStorage.setItem(STORE_KEY, JSON.stringify(initial));
-    window.dispatchEvent(new Event(STORE_EVENT));
-  }
+  resetStaffStore();
 }
 
 export function subscribeCourseStore(listener: () => void): () => void {
-  if (typeof window === "undefined") return () => undefined;
-  const handleStorage = (event: StorageEvent) => {
-    if (event.key === STORE_KEY) listener();
-  };
-  window.addEventListener(STORE_EVENT, listener);
-  window.addEventListener("storage", handleStorage);
-  return () => {
-    window.removeEventListener(STORE_EVENT, listener);
-    window.removeEventListener("storage", handleStorage);
-  };
+  return subscribeStaffStore(listener);
 }

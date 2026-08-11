@@ -32,6 +32,7 @@ const pageTitles: Array<[RegExp, string]> = [
   [/^\/(teacher|content|admin)$/, "Рабочий стол"],
   [/^\/courses\/create$/, "Создание курса"],
   [/^\/courses\/[^/]+\/edit$/, "Редактирование курса"],
+  [/^\/courses\/[^/]+\/builder$/, "Структура курса"],
   [/^\/courses\/[^/]+$/, "Карточка курса"],
   [/^\/courses$/, "Курсы"],
 ];

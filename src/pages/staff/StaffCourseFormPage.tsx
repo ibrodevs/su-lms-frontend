@@ -204,6 +204,8 @@ export default function StaffCourseFormPage() {
 
   const saveCourse = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const submitter = (event.nativeEvent as SubmitEvent).submitter;
+    const destination = submitter instanceof HTMLButtonElement ? submitter.value : "details";
     if (!session || !validate()) {
       setToast({ id: Date.now(), title: "Проверьте форму", description: "Исправьте отмеченные поля.", variant: "error" });
       return;
@@ -214,7 +216,7 @@ export default function StaffCourseFormPage() {
       : createCourse(buildInput(), session.userId);
     allowNavigationRef.current = true;
     setIsDirty(false);
-    history.push(`/courses/${saved.id}`);
+    history.push(destination === "builder" ? `/courses/${saved.id}/builder` : `/courses/${saved.id}`);
   };
 
   const handleCover = (event: ChangeEvent<HTMLInputElement>) => {
@@ -355,9 +357,12 @@ export default function StaffCourseFormPage() {
 
         <div className="sticky bottom-3 z-20 flex flex-col-reverse gap-3 rounded-brand border-2 border-line bg-paper/95 p-3 backdrop-blur sm:flex-row sm:justify-end">
           <Link className="inline-flex min-h-12 items-center justify-center rounded-brand border-2 border-line px-5 text-sm font-black text-graphite hover:bg-mist" to={courseId ? `/courses/${courseId}` : "/courses"}>Отмена</Link>
-          <button className="student-pressable inline-flex min-h-12 items-center justify-center gap-2 rounded-brand border-2 border-ecto-dark bg-ecto px-5 text-sm font-black text-white" type="submit">
+          <button className="inline-flex min-h-12 items-center justify-center gap-2 rounded-brand border-2 border-ecto px-5 text-sm font-black text-ecto-dark hover:bg-ecto/10" name="destination" type="submit" value="details">
             <Save aria-hidden="true" size={18} />
             {isEditing ? "Сохранить изменения" : "Сохранить черновик"}
+          </button>
+          <button className="student-pressable inline-flex min-h-12 items-center justify-center gap-2 rounded-brand border-2 border-ecto-dark bg-ecto px-5 text-sm font-black text-white" name="destination" type="submit" value="builder">
+            <Save aria-hidden="true" size={18} /> Сохранить и продолжить
           </button>
         </div>
       </form>

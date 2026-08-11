@@ -29,6 +29,7 @@ const StaffDashboardPage = lazy(() => import("./pages/staff/StaffDashboardPage")
 const StaffCoursesPage = lazy(() => import("./pages/staff/StaffCoursesPage"));
 const StaffCourseFormPage = lazy(() => import("./pages/staff/StaffCourseFormPage"));
 const StaffCourseDetailPage = lazy(() => import("./pages/staff/StaffCourseDetailPage"));
+const CourseBuilderPage = lazy(() => import("./pages/staff/CourseBuilderPage"));
 
 function RouteLoading() {
   return (
@@ -139,6 +140,9 @@ export default function App() {
             </Route>
             <Route exact path="/courses/:courseId/edit">
               <StaffCourseFormPage />
+            </Route>
+            <Route exact path="/courses/:courseId/builder">
+              <CourseBuilderPage />
             </Route>
             <Route exact path="/courses/:courseId">
               <StaffCourseDetailPage />
