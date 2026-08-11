@@ -33,6 +33,7 @@ const CourseBuilderPage = lazy(() => import("./pages/staff/CourseBuilderPage"));
 const LessonEditorPage = lazy(() => import("./pages/staff/LessonEditorPage"));
 const StaffMaterialsPage = lazy(() => import("./pages/staff/StaffMaterialsPage"));
 const CoursePreviewPage = lazy(() => import("./pages/staff/CoursePreviewPage"));
+const StaffTemplatesPage = lazy(() => import("./pages/staff/StaffTemplatesPage"));
 
 function RouteLoading() {
   return (
@@ -133,7 +134,7 @@ export default function App() {
           <CoursePreviewPage />
         </StaffProtectedRoute>
       </Route>
-      <Route path={["/teacher", "/content", "/admin", "/courses", "/materials"]}>
+      <Route path={["/teacher", "/content", "/admin", "/courses", "/materials", "/templates"]}>
         <StaffProtectedRoute>
           <StaffLayout>
             <Switch>
@@ -160,6 +161,9 @@ export default function App() {
             </Route>
             <Route exact path="/materials">
               <StaffMaterialsPage />
+            </Route>
+            <Route exact path="/templates">
+              <StaffTemplatesPage />
             </Route>
             <Route>
               <NotFoundPage />

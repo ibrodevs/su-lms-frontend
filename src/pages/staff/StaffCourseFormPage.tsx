@@ -1,7 +1,7 @@
-import { ArrowLeft, FileText, ImagePlus, Save, Upload, X } from "lucide-react";
+import { ArrowLeft, BookCopy, FileText, ImagePlus, Save, Upload, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
-import { Link, useHistory, useParams } from "react-router-dom";
+import { Link, useHistory, useLocation, useParams } from "react-router-dom";
 import StaffToast from "../../components/staff/StaffToast";
 import type { ToastMessage } from "../../components/staff/StaffToast";
 import PublishedCourseNotice from "../../components/staff/PublishedCourseNotice";
@@ -19,6 +19,11 @@ import {
   isCourseCodeUnique,
   updateCourse,
 } from "../../services/courseService";
+import {
+  createCourseFromTemplate,
+  getCourseTemplate,
+  getCourseTemplateStats,
+} from "../../services/courseTemplateService";
 import { getStaffSession } from "../../services/staffSession";
 import type { CourseInput, CourseLanguage } from "../../types/staff";
 
@@ -69,12 +74,32 @@ function getInitialForm(teacherId: string): CourseFormState {
 export default function StaffCourseFormPage() {
   const { courseId } = useParams<RouteParams>();
   const history = useHistory();
+  const location = useLocation();
   const session = getStaffSession();
   const isEditing = Boolean(courseId);
   const existingCourse = courseId ? getCourse(courseId) : null;
+  const templateId = useMemo(
+    () => new URLSearchParams(location.search).get("template"),
+    [location.search],
+  );
+  const selectedTemplate = useMemo(
+    () => (!isEditing && templateId ? getCourseTemplate(templateId) : null),
+    [isEditing, templateId],
+  );
   const defaultTeacherId = session?.role === "teacher" ? session.userId : mockTeachers[0]?.id ?? "";
   const [form, setForm] = useState<CourseFormState>(() => {
-    if (!existingCourse) return getInitialForm(defaultTeacherId);
+    if (!existingCourse) {
+      const initial = getInitialForm(defaultTeacherId);
+      return selectedTemplate
+        ? {
+            ...initial,
+            title: selectedTemplate.name,
+            description: selectedTemplate.description,
+            language: selectedTemplate.language,
+            credits: String(selectedTemplate.credits),
+          }
+        : initial;
+    }
     return {
       title: existingCourse.title,
       code: existingCourse.code,
@@ -107,6 +132,10 @@ export default function StaffCourseFormPage() {
   const programs = useMemo(
     () => mockPrograms.filter((program) => program.departmentId === form.departmentId),
     [form.departmentId],
+  );
+  const templateStats = useMemo(
+    () => (selectedTemplate ? getCourseTemplateStats(selectedTemplate) : null),
+    [selectedTemplate],
   );
 
   useEffect(() => {
@@ -214,7 +243,9 @@ export default function StaffCourseFormPage() {
 
     const saved = courseId
       ? updateCourse(courseId, buildInput(), session.userId)
-      : createCourse(buildInput(), session.userId);
+      : selectedTemplate
+        ? createCourseFromTemplate(selectedTemplate.id, buildInput(), session.userId)
+        : createCourse(buildInput(), session.userId);
     allowNavigationRef.current = true;
     setIsDirty(false);
     history.push(destination === "builder" ? `/courses/${saved.id}/builder` : `/courses/${saved.id}`);
@@ -263,10 +294,28 @@ export default function StaffCourseFormPage() {
         <h1 className="mt-2 text-3xl font-black tracking-tight text-navy sm:text-4xl">
           {isEditing ? "Редактирование курса" : "Создание курса"}
         </h1>
-        <p className="mt-2 text-sm text-ash">Заполните основную информацию и сохраните курс как черновик.</p>
+        <p className="mt-2 text-sm text-ash">
+          {selectedTemplate
+            ? "Проверьте основные данные — структура шаблона будет добавлена после сохранения."
+            : "Заполните основную информацию и сохраните курс как черновик."}
+        </p>
       </header>
 
       {existingCourse?.status === "published" ? <PublishedCourseNotice /> : null}
+
+      {selectedTemplate && templateStats ? (
+        <section className="flex flex-col gap-4 rounded-brand border-2 border-eel bg-eel/20 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="grid size-11 shrink-0 place-items-center rounded-brand bg-ecto text-white"><BookCopy aria-hidden="true" size={21} /></span>
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-ecto-dark">Выбран шаблон</span>
+              <h2 className="mt-1 text-lg font-black text-navy">{selectedTemplate.name}</h2>
+              <p className="mt-1 text-xs font-bold text-ash">{templateStats.moduleCount} модулей · {templateStats.lessonCount} уроков · {templateStats.materialCount} материалов</p>
+            </div>
+          </div>
+          <Link className="inline-flex min-h-10 items-center justify-center rounded-brand border-2 border-line bg-paper px-4 text-xs font-black text-graphite hover:border-lingot" to="/templates">Выбрать другой</Link>
+        </section>
+      ) : null}
 
       <form className="grid gap-6" noValidate onSubmit={saveCourse}>
         <section className="rounded-brand border-2 border-line bg-paper p-5 lg:p-7">

@@ -6,6 +6,7 @@ import {
   Files,
   GraduationCap,
   Home,
+  LayoutTemplate,
   LogOut,
   Menu,
   Plus,
@@ -38,6 +39,7 @@ const pageTitles: Array<[RegExp, string]> = [
   [/^\/courses\/[^/]+$/, "Карточка курса"],
   [/^\/courses$/, "Курсы"],
   [/^\/materials$/, "Материалы"],
+  [/^\/templates$/, "Шаблоны"],
 ];
 
 interface StaffLayoutProps {
@@ -76,6 +78,12 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
       { icon: Files, label: "Материалы", to: "/materials", exact: true },
     ];
     if (role !== "teacher") {
+      items.push({
+        icon: LayoutTemplate,
+        label: "Шаблоны",
+        to: "/templates",
+        exact: true,
+      });
       items.push({
         icon: FileCheck2,
         label: "Курсы на проверке",

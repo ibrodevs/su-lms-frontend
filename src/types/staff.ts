@@ -230,6 +230,37 @@ export interface CourseInput {
   syllabusName?: string;
 }
 
+export interface CourseTemplateMaterial extends MaterialInput {
+  id: string;
+}
+
+export interface CourseTemplateLesson extends Omit<LessonInput, "releaseCondition"> {
+  id: string;
+  releaseCondition: ReleaseCondition;
+  materials: CourseTemplateMaterial[];
+}
+
+export interface CourseTemplateTopic extends TopicInput {
+  id: string;
+  lessons: CourseTemplateLesson[];
+}
+
+export interface CourseTemplateModule extends Omit<ModuleInput, "releaseCondition"> {
+  id: string;
+  releaseCondition: ReleaseCondition;
+  topics: CourseTemplateTopic[];
+}
+
+export interface CourseTemplate {
+  id: string;
+  name: string;
+  description: string;
+  creatorId: string;
+  language: CourseLanguage;
+  credits: number;
+  modules: CourseTemplateModule[];
+}
+
 export type CourseSortField =
   | "title"
   | "code"
@@ -258,13 +289,14 @@ export interface StaffSession {
 }
 
 export interface StaffStore {
-  version: 3;
+  version: 4;
   courses: Course[];
   history: CourseHistoryEvent[];
   modules: CourseModule[];
   topics: CourseTopic[];
   lessons: CourseLesson[];
   materials: StaffMaterial[];
+  templates: CourseTemplate[];
 }
 
 export interface CourseReadiness {

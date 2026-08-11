@@ -5,6 +5,7 @@ import {
   CalendarDays,
   Check,
   CheckCircle2,
+  Copy,
   Edit3,
   Eye,
   FileText,
@@ -41,6 +42,7 @@ import {
 } from "../../services/courseService";
 import type { CourseReviewIssue } from "../../services/courseService";
 import { getStaffSession } from "../../services/staffSession";
+import { copyCourse } from "../../services/courseTemplateService";
 import { getCourseMaterials } from "../../services/materialService";
 import type { CourseStatus } from "../../types/staff";
 import { cn } from "../../utils/cn";
@@ -75,6 +77,7 @@ export default function StaffCourseDetailPage() {
   const [returnComment, setReturnComment] = useState("");
   const [reviewIssues, setReviewIssues] = useState<CourseReviewIssue[]>([]);
   const [isPublishedEditPending, setIsPublishedEditPending] = useState(false);
+  const [isCopyPending, setIsCopyPending] = useState(false);
   const [toast, setToast] = useState<ToastMessage | null>(null);
 
   useEffect(() => subscribeCourseStore(() => setRevision((value) => value + 1)), []);
@@ -141,6 +144,16 @@ export default function StaffCourseDetailPage() {
     setToast({ id: Date.now(), title: "Курс возвращён на доработку" });
   };
 
+  const confirmCourseCopy = () => {
+    const copied = copyCourse(course.id, session.userId);
+    setIsCopyPending(false);
+    setToast({
+      id: Date.now(),
+      title: "Курс скопирован",
+      description: `Создан новый черновик ${copied.code}`,
+    });
+  };
+
   return (
     <div className="grid gap-6">
       <Link className="inline-flex w-fit items-center gap-2 text-sm font-black text-ash hover:text-macaw-dark" to="/courses">
@@ -189,6 +202,11 @@ export default function StaffCourseDetailPage() {
                 <Edit3 aria-hidden="true" size={17} /> Редактировать
               </Link>
             )}
+            {canReview ? (
+              <button className="inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-line px-4 text-sm font-black text-graphite hover:border-lingot hover:bg-eel/10" onClick={() => setIsCopyPending(true)} type="button">
+                <Copy aria-hidden="true" size={17} /> Копировать
+              </button>
+            ) : null}
             {course.status === "draft" ? (
               <button className="student-pressable inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-ecto-dark bg-ecto px-4 text-sm font-black text-white" onClick={submitForReview} type="button">
                 <Send aria-hidden="true" size={17} /> Отправить на проверку
@@ -325,6 +343,15 @@ export default function StaffCourseDetailPage() {
       ) : null}
 
       <CourseReviewIssuesDialog courseId={course.id} issues={reviewIssues} onClose={() => setReviewIssues([])} />
+
+      <ConfirmDialog
+        confirmLabel="Создать копию"
+        description="Метаданные, структура и материалы будут перенесены в новый курс со статусом «Черновик». История и данные студентов не копируются."
+        isOpen={isCopyPending}
+        onCancel={() => setIsCopyPending(false)}
+        onConfirm={confirmCourseCopy}
+        title="Копировать курс?"
+      />
 
       <ConfirmDialog
         confirmLabel="Продолжить редактирование"

@@ -1,6 +1,7 @@
 import {
   ChevronLeft,
   ChevronRight,
+  Copy,
   Edit3,
   Eye,
   FilterX,
@@ -10,7 +11,10 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import ConfirmDialog from "../../components/student/ConfirmDialog";
 import CourseStatusBadge from "../../components/staff/CourseStatusBadge";
+import StaffToast from "../../components/staff/StaffToast";
+import type { ToastMessage } from "../../components/staff/StaffToast";
 import {
   mockDepartments,
   mockFaculties,
@@ -25,6 +29,7 @@ import {
   subscribeCourseStore,
 } from "../../services/courseService";
 import { getStaffSession } from "../../services/staffSession";
+import { copyCourse } from "../../services/courseTemplateService";
 import type { CourseFilters, CourseLanguage, CourseSortField, CourseStatus } from "../../types/staff";
 import { courseLanguageLabels, courseStatusLabels } from "../../utils/staffDisplay";
 
@@ -59,6 +64,8 @@ export default function StaffCoursesPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [revision, setRevision] = useState(0);
+  const [pendingCopyId, setPendingCopyId] = useState<string | null>(null);
+  const [toast, setToast] = useState<ToastMessage | null>(null);
   const isLoading = useMockLoading();
 
   useEffect(() => subscribeCourseStore(() => setRevision((value) => value + 1)), []);
@@ -112,6 +119,17 @@ export default function StaffCoursesPage() {
   const resetFilters = () => {
     setFilters(defaultFilters);
     setPage(1);
+  };
+
+  const confirmCourseCopy = () => {
+    if (!session || !pendingCopyId) return;
+    const copied = copyCourse(pendingCopyId, session.userId);
+    setPendingCopyId(null);
+    setToast({
+      id: Date.now(),
+      title: "Курс скопирован",
+      description: `Создан черновик ${copied.code}`,
+    });
   };
 
   const renderCourseMeta = (courseId: string, field: "teacher" | "semester" | "faculty") => {
@@ -303,6 +321,7 @@ export default function StaffCoursesPage() {
                           <ActionLink label="Открыть" to={`/courses/${course.id}`}><Eye aria-hidden="true" size={16} /></ActionLink>
                           <ActionLink label="Preview" to={`/courses/${course.id}/preview`}><Eye aria-hidden="true" size={16} /></ActionLink>
                           <ActionLink label="Редактировать" to={`/courses/${course.id}/edit`}><Edit3 aria-hidden="true" size={16} /></ActionLink>
+                          {session?.role !== "teacher" ? <ActionButton label="Копировать" onClick={() => setPendingCopyId(course.id)}><Copy aria-hidden="true" size={16} /></ActionButton> : null}
                         </div>
                       </td>
                     </tr>
@@ -325,10 +344,11 @@ export default function StaffCoursesPage() {
                     <div><dt className="font-bold text-ash">Преподаватель</dt><dd className="mt-1 font-black text-graphite">{renderCourseMeta(course.id, "teacher")}</dd></div>
                     <div><dt className="font-bold text-ash">Семестр</dt><dd className="mt-1 font-black text-graphite">{renderCourseMeta(course.id, "semester")}</dd></div>
                   </dl>
-                  <div className="mt-4 grid grid-cols-3 gap-2">
+                  <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
                     <ActionLink label="Открыть" to={`/courses/${course.id}`}><Eye aria-hidden="true" size={16} /></ActionLink>
                     <ActionLink label="Preview" to={`/courses/${course.id}/preview`}><Eye aria-hidden="true" size={16} /></ActionLink>
                     <ActionLink label="Изменить" to={`/courses/${course.id}/edit`}><Edit3 aria-hidden="true" size={16} /></ActionLink>
+                    {session?.role !== "teacher" ? <ActionButton label="Копировать" onClick={() => setPendingCopyId(course.id)}><Copy aria-hidden="true" size={16} /></ActionButton> : null}
                   </div>
                 </article>
               ))}
@@ -353,6 +373,16 @@ export default function StaffCoursesPage() {
           </div>
         </div>
       </section>
+
+      <ConfirmDialog
+        confirmLabel="Создать копию"
+        description="Метаданные, структура и материалы будут скопированы в новый курс со статусом «Черновик». История и данные студентов не переносятся."
+        isOpen={Boolean(pendingCopyId)}
+        onCancel={() => setPendingCopyId(null)}
+        onConfirm={confirmCourseCopy}
+        title="Копировать курс?"
+      />
+      <StaffToast message={toast} onClose={() => setToast(null)} />
     </div>
   );
 }
@@ -395,5 +425,25 @@ function ActionLink({ children, label, to }: ActionLinkProps) {
       {children}
       <span className="hidden sm:inline">{label}</span>
     </Link>
+  );
+}
+
+interface ActionButtonProps {
+  children: React.ReactNode;
+  label: string;
+  onClick: () => void;
+}
+
+function ActionButton({ children, label, onClick }: ActionButtonProps) {
+  return (
+    <button
+      aria-label={label}
+      className="inline-flex min-h-10 items-center justify-center gap-2 rounded-brand border-2 border-line px-3 text-xs font-black text-graphite hover:border-lingot hover:bg-eel/10"
+      onClick={onClick}
+      type="button"
+    >
+      {children}
+      <span className="hidden sm:inline">{label}</span>
+    </button>
   );
 }
