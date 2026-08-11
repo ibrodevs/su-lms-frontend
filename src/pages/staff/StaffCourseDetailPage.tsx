@@ -17,7 +17,9 @@ import {
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useHistory, useParams } from "react-router-dom";
+import CourseLifecycle from "../../components/staff/CourseLifecycle";
+import CourseReviewIssuesDialog from "../../components/staff/CourseReviewIssuesDialog";
 import CourseStatusBadge from "../../components/staff/CourseStatusBadge";
 import StaffToast from "../../components/staff/StaffToast";
 import type { ToastMessage } from "../../components/staff/StaffToast";
@@ -30,13 +32,14 @@ import {
 } from "../../data/mock/mockOrganization";
 import { mockStaffUsers } from "../../data/mock/mockUsers";
 import {
-  canSubmitForReview,
   changeCourseStatus,
   getCourse,
   getCourseHistory,
   getCourseReadiness,
+  getCourseReviewIssues,
   subscribeCourseStore,
 } from "../../services/courseService";
+import type { CourseReviewIssue } from "../../services/courseService";
 import { getStaffSession } from "../../services/staffSession";
 import { getCourseMaterials } from "../../services/materialService";
 import type { CourseStatus } from "../../types/staff";
@@ -63,12 +66,15 @@ const dateFormatter = new Intl.DateTimeFormat("ru-RU", {
 
 export default function StaffCourseDetailPage() {
   const { courseId } = useParams<RouteParams>();
+  const historyNavigation = useHistory();
   const session = getStaffSession();
   const [, setRevision] = useState(0);
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [pendingAction, setPendingAction] = useState<PendingStatusAction | null>(null);
   const [isReturnOpen, setIsReturnOpen] = useState(false);
   const [returnComment, setReturnComment] = useState("");
+  const [reviewIssues, setReviewIssues] = useState<CourseReviewIssue[]>([]);
+  const [isPublishedEditPending, setIsPublishedEditPending] = useState(false);
   const [toast, setToast] = useState<ToastMessage | null>(null);
 
   useEffect(() => subscribeCourseStore(() => setRevision((value) => value + 1)), []);
@@ -97,17 +103,17 @@ export default function StaffCourseDetailPage() {
   const canReview = session.role === "content-manager" || session.role === "admin";
 
   const submitForReview = () => {
-    if (!canSubmitForReview(course)) {
-      setToast({
-        id: Date.now(),
-        title: "Курс нельзя отправить на проверку",
-        description: "Добавьте минимум один модуль, тему и урок.",
-        variant: "error",
-      });
+    const issues = getCourseReviewIssues(course.id);
+    if (issues.length) {
+      setReviewIssues(issues);
       return;
     }
-    changeCourseStatus(course.id, "under-review", session.userId);
-    setToast({ id: Date.now(), title: "Курс отправлен на проверку" });
+    setPendingAction({
+      status: "under-review",
+      title: "Отправить курс на проверку?",
+      description: "Редакторы увидят текущую структуру, уроки и материалы курса.",
+      confirmLabel: "Отправить",
+    });
   };
 
   const confirmStatusChange = () => {
@@ -120,7 +126,9 @@ export default function StaffCourseDetailPage() {
           ? "Курс опубликован"
           : pendingAction.status === "archived"
             ? "Курс архивирован"
-            : "Курс восстановлен",
+            : pendingAction.status === "under-review"
+              ? "Курс отправлен на проверку"
+              : "Курс восстановлен",
     });
     setPendingAction(null);
   };
@@ -172,9 +180,15 @@ export default function StaffCourseDetailPage() {
             <Link className="inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-macaw px-4 text-sm font-black text-macaw-dark hover:bg-macaw/10" to={`/courses/${course.id}/preview`}>
               <Eye aria-hidden="true" size={17} /> Preview
             </Link>
-            <Link className="inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-line px-4 text-sm font-black text-graphite hover:border-lingot" to={`/courses/${course.id}/edit`}>
-              <Edit3 aria-hidden="true" size={17} /> Редактировать
-            </Link>
+            {course.status === "published" ? (
+              <button className="inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-warning px-4 text-sm font-black text-warning-dark hover:bg-warning/10" onClick={() => setIsPublishedEditPending(true)} type="button">
+                <Edit3 aria-hidden="true" size={17} /> Редактировать
+              </button>
+            ) : (
+              <Link className="inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-line px-4 text-sm font-black text-graphite hover:border-lingot" to={`/courses/${course.id}/edit`}>
+                <Edit3 aria-hidden="true" size={17} /> Редактировать
+              </Link>
+            )}
             {course.status === "draft" ? (
               <button className="student-pressable inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-ecto-dark bg-ecto px-4 text-sm font-black text-white" onClick={submitForReview} type="button">
                 <Send aria-hidden="true" size={17} /> Отправить на проверку
@@ -195,6 +209,8 @@ export default function StaffCourseDetailPage() {
           </div>
         </div>
       </section>
+
+      <CourseLifecycle status={course.status} />
 
       <nav aria-label="Разделы курса" className="flex gap-2 overflow-x-auto rounded-brand border-2 border-line bg-paper p-2">
         {([
@@ -307,6 +323,17 @@ export default function StaffCourseDetailPage() {
           </div>
         </section>
       ) : null}
+
+      <CourseReviewIssuesDialog courseId={course.id} issues={reviewIssues} onClose={() => setReviewIssues([])} />
+
+      <ConfirmDialog
+        confirmLabel="Продолжить редактирование"
+        description="Изменения опубликованного курса могут потребовать повторной проверки перед обновлением материалов для студентов."
+        isOpen={isPublishedEditPending}
+        onCancel={() => setIsPublishedEditPending(false)}
+        onConfirm={() => historyNavigation.push(`/courses/${course.id}/edit`)}
+        title="Редактировать опубликованный курс?"
+      />
 
       <ConfirmDialog confirmLabel={pendingAction?.confirmLabel ?? "Продолжить"} description={pendingAction?.description ?? ""} isOpen={Boolean(pendingAction)} onCancel={() => setPendingAction(null)} onConfirm={confirmStatusChange} title={pendingAction?.title ?? "Подтвердите действие"} />
 

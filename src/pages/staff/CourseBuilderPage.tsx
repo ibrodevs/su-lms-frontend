@@ -5,6 +5,7 @@ import CourseStructureTree from "../../components/staff/CourseStructureTree";
 import type { StructureEntityKind, StructureSelection } from "../../components/staff/CourseStructureTree";
 import StaffToast from "../../components/staff/StaffToast";
 import type { ToastMessage } from "../../components/staff/StaffToast";
+import PublishedCourseNotice from "../../components/staff/PublishedCourseNotice";
 import StructureEditor from "../../components/staff/StructureEditor";
 import ConfirmDialog from "../../components/student/ConfirmDialog";
 import { getCourse, subscribeCourseStore } from "../../services/courseService";
@@ -120,6 +121,8 @@ export default function CourseBuilderPage() {
           </div>
         </div>
       </header>
+
+      {course.status === "published" ? <PublishedCourseNotice /> : null}
 
       <button className="flex min-h-12 items-center justify-between rounded-brand border-2 border-line bg-paper px-4 text-sm font-black text-graphite lg:hidden" onClick={() => setIsTreeOpen(true)} type="button"><span className="flex items-center gap-2"><Menu aria-hidden="true" size={19} /> Открыть структуру</span><span className="rounded-brand bg-mist px-2 py-1 text-xs text-ash">{structure.lessons.length} уроков</span></button>
 

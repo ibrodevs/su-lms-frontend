@@ -6,6 +6,7 @@ import { Link, useHistory, useParams } from "react-router-dom";
 import MaterialManager from "../../components/staff/MaterialManager";
 import StaffToast from "../../components/staff/StaffToast";
 import type { ToastMessage } from "../../components/staff/StaffToast";
+import PublishedCourseNotice from "../../components/staff/PublishedCourseNotice";
 import ConfirmDialog from "../../components/student/ConfirmDialog";
 import { getCourse, subscribeCourseStore } from "../../services/courseService";
 import { getCourseStructure, getLesson, updateLesson } from "../../services/courseStructureService";
@@ -133,6 +134,8 @@ export default function LessonEditorPage() {
         <Link className="inline-flex items-center gap-2 text-sm font-black text-ash hover:text-macaw-dark" to={`/courses/${course.id}/builder`}><ArrowLeft aria-hidden="true" size={17} /> Назад в Course Builder</Link>
         <div className="mt-5 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between"><div><span className="text-xs font-black uppercase tracking-[0.14em] text-ecto-dark">Lesson Editor</span><h1 className="mt-2 text-3xl font-black tracking-tight text-navy sm:text-4xl">{lesson.title}</h1><p className="mt-2 text-sm text-ash">{course.code} · {module.title} · {topic.title}</p></div><div className="flex flex-wrap gap-2"><span className="rounded-brand border-2 border-line bg-paper px-3 py-2 text-xs font-black text-ash">{materials.length} материалов</span><span className={cn("rounded-brand px-3 py-2 text-xs font-black", lesson.status === "ready" ? "bg-ecto/15 text-ecto-dark" : "bg-warning/15 text-warning-dark")}>{lesson.status === "ready" ? "Готов" : "Черновик"}</span></div></div>
       </header>
+
+      {course.status === "published" ? <PublishedCourseNotice /> : null}
 
       <form className="grid gap-6" noValidate onSubmit={saveLesson}>
         <section className="rounded-brand border-2 border-line bg-paper p-4 sm:p-6">

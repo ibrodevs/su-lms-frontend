@@ -4,6 +4,7 @@ import type { ChangeEvent, FormEvent } from "react";
 import { Link, useHistory, useParams } from "react-router-dom";
 import StaffToast from "../../components/staff/StaffToast";
 import type { ToastMessage } from "../../components/staff/StaffToast";
+import PublishedCourseNotice from "../../components/staff/PublishedCourseNotice";
 import ConfirmDialog from "../../components/student/ConfirmDialog";
 import {
   mockDepartments,
@@ -264,6 +265,8 @@ export default function StaffCourseFormPage() {
         </h1>
         <p className="mt-2 text-sm text-ash">Заполните основную информацию и сохраните курс как черновик.</p>
       </header>
+
+      {existingCourse?.status === "published" ? <PublishedCourseNotice /> : null}
 
       <form className="grid gap-6" noValidate onSubmit={saveCourse}>
         <section className="rounded-brand border-2 border-line bg-paper p-5 lg:p-7">

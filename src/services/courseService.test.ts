@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
+  canSubmitForReview,
   changeCourseStatus,
   createCourse,
   filterCourses,
   getCourse,
   getCourseHistory,
+  getCourseReviewIssues,
   getCourses,
   getVisibleCourses,
   resetCourseManagementData,
@@ -100,5 +102,41 @@ describe("courseService", () => {
 
     expect(getCourse("course-security")?.status).toBe("published");
     expect(getCourse("course-security")?.publishedAt).toBeTruthy();
+  });
+
+  it("returns actionable review issues for an incomplete course", () => {
+    const created = createCourse(courseInput, "teacher-1");
+    const issues = getCourseReviewIssues(created.id);
+
+    expect(issues.map((issue) => issue.id)).toEqual(["cover", "syllabus", "modules"]);
+    expect(canSubmitForReview(created)).toBe(false);
+    expect(getCourseReviewIssues("course-web")).toEqual([]);
+  });
+
+  it("enforces lifecycle order, role permissions and revision comments", () => {
+    expect(() =>
+      changeCourseStatus("course-security", "published", "teacher-1"),
+    ).toThrow("FORBIDDEN_STATUS_TRANSITION");
+    expect(() =>
+      changeCourseStatus("course-security", "draft", "content-1"),
+    ).toThrow("REVIEW_COMMENT_REQUIRED");
+
+    changeCourseStatus(
+      "course-security",
+      "draft",
+      "content-1",
+      "Добавьте материалы в третий модуль.",
+    );
+    expect(getCourse("course-security")?.reviewComment).toContain("третий модуль");
+
+    changeCourseStatus("course-security", "under-review", "teacher-1");
+    expect(getCourse("course-security")?.reviewComment).toBeUndefined();
+    expect(() =>
+      changeCourseStatus("course-security", "archived", "admin-1"),
+    ).toThrow("INVALID_STATUS_TRANSITION");
+
+    changeCourseStatus("course-security", "published", "admin-1");
+    changeCourseStatus("course-security", "archived", "content-1");
+    expect(getCourse("course-security")?.status).toBe("archived");
   });
 });
