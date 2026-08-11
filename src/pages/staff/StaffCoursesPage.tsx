@@ -291,7 +291,7 @@ export default function StaffCoursesPage() {
           </div>
         ) : visibleCourses.length ? (
           <>
-            <div className="hidden overflow-x-auto lg:block">
+            <div className="hidden overflow-x-auto xl:block">
               <table className="w-full min-w-[1050px] border-collapse text-left">
                 <thead className="bg-mist text-[10px] font-black uppercase tracking-wider text-ash">
                   <tr>
@@ -330,7 +330,7 @@ export default function StaffCoursesPage() {
               </table>
             </div>
 
-            <div className="grid gap-3 p-3 lg:hidden">
+            <div className="grid gap-3 p-3 xl:hidden">
               {visibleCourses.map((course) => (
                 <article className="rounded-brand border-2 border-line p-4" key={course.id}>
                   <div className="flex items-start justify-between gap-3">

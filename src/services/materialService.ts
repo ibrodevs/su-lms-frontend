@@ -6,6 +6,7 @@ import {
   updateCourseAggregates,
   writeStaffStore,
 } from "./staffStore";
+import { assertStaffCourseAccess } from "./staffAuthorization";
 
 type Direction = "up" | "down";
 
@@ -28,6 +29,7 @@ function persistMaterialChange(
   action: string,
   details: string,
 ): void {
+  assertStaffCourseAccess(store, courseId, userId);
   updateCourseAggregates(store, courseId, userId);
   appendCourseHistory(store, courseId, userId, action, details);
   writeStaffStore(store);

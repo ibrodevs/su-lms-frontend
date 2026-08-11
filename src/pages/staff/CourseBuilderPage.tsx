@@ -22,6 +22,7 @@ import {
   moveTopic,
 } from "../../services/courseStructureService";
 import { getStaffSession } from "../../services/staffSession";
+import { canStaffUserAccessCourse } from "../../services/staffAuthorization";
 
 interface RouteParams {
   courseId: string;
@@ -52,10 +53,11 @@ export default function CourseBuilderPage() {
   const course = getCourse(courseId);
   const structure = getCourseStructure(courseId);
   const closeToast = useCallback(() => setToast(null), []);
+  const hasAccess = Boolean(course && session && canStaffUserAccessCourse(course, session.userId));
 
-  if (!course || !session) {
+  if (!course || !session || !hasAccess) {
     return (
-      <div className="grid min-h-96 place-items-center rounded-brand border-2 border-line p-6 text-center"><div><h1 className="text-2xl font-black text-navy">Курс не найден</h1><Link className="mt-4 inline-block text-sm font-black text-macaw-dark hover:underline" to="/courses">Вернуться к курсам</Link></div></div>
+      <div className="grid min-h-96 place-items-center rounded-brand border-2 border-line p-6 text-center"><div><h1 className="text-2xl font-black text-navy">{course ? "Нет доступа к курсу" : "Курс не найден"}</h1><Link className="mt-4 inline-block text-sm font-black text-macaw-dark hover:underline" to="/courses">Вернуться к курсам</Link></div></div>
     );
   }
 

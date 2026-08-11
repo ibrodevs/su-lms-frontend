@@ -24,6 +24,7 @@ import {
   type PreviewModule,
 } from "../../services/coursePreviewService";
 import { getStaffSession } from "../../services/staffSession";
+import { canStaffUserAccessCourse } from "../../services/staffAuthorization";
 import type { StaffMaterial } from "../../types/staff";
 import { formatFileSize, staffMaterialTypeLabels } from "../../utils/materialDisplay";
 
@@ -51,7 +52,7 @@ export default function CoursePreviewPage() {
   const hasAccess = Boolean(
     preview &&
       session &&
-      (session.role !== "teacher" || preview.course.teacherId === session.userId),
+      canStaffUserAccessCourse(preview.course, session.userId),
   );
   const selectedLesson = preview
     ? preview.lessons.find((item) => item.lesson.id === selectedLessonId) ??

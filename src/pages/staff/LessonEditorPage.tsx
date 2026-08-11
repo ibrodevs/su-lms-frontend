@@ -12,6 +12,7 @@ import { getCourse, subscribeCourseStore } from "../../services/courseService";
 import { getCourseStructure, getLesson, updateLesson } from "../../services/courseStructureService";
 import { getMaterialsForLesson } from "../../services/materialService";
 import { getStaffSession } from "../../services/staffSession";
+import { canStaffUserAccessCourse } from "../../services/staffAuthorization";
 import type { LessonInput, LessonStatus, LessonType, LessonVideoKind, ReleaseConditionType } from "../../types/staff";
 import { cn } from "../../utils/cn";
 
@@ -55,6 +56,7 @@ export default function LessonEditorPage() {
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const allowNavigationRef = useRef(false);
   const closeToast = useCallback(() => setToast(null), []);
+  const hasAccess = Boolean(course && session && canStaffUserAccessCourse(course, session.userId));
 
   useEffect(() => subscribeCourseStore(() => setRevision((value) => value + 1)), []);
 
@@ -91,8 +93,8 @@ export default function LessonEditorPage() {
 
   const otherLessons = useMemo(() => structure.lessons.filter((candidate) => candidate.id !== lessonId), [lessonId, structure.lessons]);
 
-  if (!course || !lesson || !session || !form || !topic || !module) {
-    return <div className="grid min-h-96 place-items-center rounded-brand border-2 border-line p-6 text-center"><div><h1 className="text-2xl font-black text-navy">Урок не найден</h1><Link className="mt-4 inline-block text-sm font-black text-macaw-dark hover:underline" to={course ? `/courses/${course.id}/builder` : "/courses"}>Вернуться к структуре курса</Link></div></div>;
+  if (!course || !lesson || !session || !hasAccess || !form || !topic || !module) {
+    return <div className="grid min-h-96 place-items-center rounded-brand border-2 border-line p-6 text-center"><div><h1 className="text-2xl font-black text-navy">{course && !hasAccess ? "Нет доступа к уроку" : "Урок не найден"}</h1><Link className="mt-4 inline-block text-sm font-black text-macaw-dark hover:underline" to={course && hasAccess ? `/courses/${course.id}/builder` : "/courses"}>Вернуться к курсам</Link></div></div>;
   }
 
   const updateField = <Key extends keyof LessonInput>(key: Key, value: LessonInput[Key]) => {

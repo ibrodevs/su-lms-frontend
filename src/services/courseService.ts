@@ -16,6 +16,7 @@ import {
   subscribeStaffStore,
   writeStaffStore,
 } from "./staffStore";
+import { assertStaffCourseAccess } from "./staffAuthorization";
 
 export interface CourseReviewIssue {
   id: string;
@@ -62,6 +63,11 @@ export function createCourse(input: CourseInput, userId: string): Course {
   if (!isCourseCodeUnique(input.code)) throw new Error("COURSE_CODE_EXISTS");
 
   const store = readStaffStore();
+  const actor = mockStaffUsers.find((user) => user.id === userId);
+  if (!actor) throw new Error("STAFF_USER_NOT_FOUND");
+  if (actor.role === "teacher" && input.teacherId !== actor.id) {
+    throw new Error("FORBIDDEN_COURSE_ACCESS");
+  }
   const now = new Date().toISOString();
   const course: Course = {
     ...input,
@@ -92,6 +98,12 @@ export function updateCourse(courseId: string, input: CourseInput, userId: strin
   const index = store.courses.findIndex((course) => course.id === courseId);
   const existing = store.courses[index];
   if (!existing) throw new Error("COURSE_NOT_FOUND");
+  assertStaffCourseAccess(store, courseId, userId);
+  const actor = mockStaffUsers.find((user) => user.id === userId);
+  if (!actor) throw new Error("STAFF_USER_NOT_FOUND");
+  if (actor.role === "teacher" && input.teacherId !== actor.id) {
+    throw new Error("FORBIDDEN_COURSE_ACCESS");
+  }
 
   const updated: Course = {
     ...existing,
@@ -120,6 +132,7 @@ export function changeCourseStatus(
   if (!existing) throw new Error("COURSE_NOT_FOUND");
   const actor = mockStaffUsers.find((user) => user.id === userId);
   if (!actor) throw new Error("STAFF_USER_NOT_FOUND");
+  assertStaffCourseAccess(store, courseId, userId);
   if (!lifecycleTransitions[existing.status].includes(status)) {
     throw new Error("INVALID_STATUS_TRANSITION");
   }

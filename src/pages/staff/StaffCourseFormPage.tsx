@@ -25,6 +25,7 @@ import {
   getCourseTemplateStats,
 } from "../../services/courseTemplateService";
 import { getStaffSession } from "../../services/staffSession";
+import { canStaffUserAccessCourse } from "../../services/staffAuthorization";
 import type { CourseInput, CourseLanguage } from "../../types/staff";
 
 interface RouteParams {
@@ -137,6 +138,9 @@ export default function StaffCourseFormPage() {
     () => (selectedTemplate ? getCourseTemplateStats(selectedTemplate) : null),
     [selectedTemplate],
   );
+  const hasCourseAccess = Boolean(
+    !existingCourse || (session && canStaffUserAccessCourse(existingCourse, session.userId)),
+  );
 
   useEffect(() => {
     if (!isDirty) return;
@@ -158,11 +162,11 @@ export default function StaffCourseFormPage() {
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [isDirty]);
 
-  if (isEditing && !existingCourse) {
+  if (isEditing && (!existingCourse || !hasCourseAccess)) {
     return (
       <div className="grid min-h-96 place-items-center rounded-brand border-2 border-line p-6 text-center">
         <div>
-          <h1 className="text-2xl font-black text-navy">Курс не найден</h1>
+          <h1 className="text-2xl font-black text-navy">{existingCourse ? "Нет доступа к курсу" : "Курс не найден"}</h1>
           <Link className="mt-4 inline-block text-sm font-black text-macaw-dark hover:underline" to="/courses">Вернуться к курсам</Link>
         </div>
       </div>

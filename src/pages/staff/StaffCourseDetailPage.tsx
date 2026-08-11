@@ -42,6 +42,7 @@ import {
 } from "../../services/courseService";
 import type { CourseReviewIssue } from "../../services/courseService";
 import { getStaffSession } from "../../services/staffSession";
+import { canStaffUserAccessCourse } from "../../services/staffAuthorization";
 import { copyCourse } from "../../services/courseTemplateService";
 import { getCourseMaterials } from "../../services/materialService";
 import type { CourseStatus } from "../../types/staff";
@@ -86,12 +87,14 @@ export default function StaffCourseDetailPage() {
   const materials = getCourseMaterials(courseId);
   const readiness = useMemo(() => (course ? getCourseReadiness(course) : null), [course]);
   const closeToast = useCallback(() => setToast(null), []);
+  const hasAccess = Boolean(course && session && canStaffUserAccessCourse(course, session.userId));
 
-  if (!course || !session) {
+  if (!course || !session || !hasAccess) {
     return (
       <div className="grid min-h-96 place-items-center rounded-brand border-2 border-line p-6 text-center">
         <div>
-          <h1 className="text-2xl font-black text-navy">Курс не найден</h1>
+          <h1 className="text-2xl font-black text-navy">{course ? "Нет доступа к курсу" : "Курс не найден"}</h1>
+          {course ? <p className="mt-2 text-sm text-ash">Преподаватель может открывать только назначенные ему курсы.</p> : null}
           <Link className="mt-4 inline-block text-sm font-black text-macaw-dark hover:underline" to="/courses">Вернуться к курсам</Link>
         </div>
       </div>
