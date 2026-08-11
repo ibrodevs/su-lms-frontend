@@ -2,12 +2,14 @@ import { lazy, Suspense } from "react";
 import { Redirect, Route, Switch } from "react-router-dom";
 import AuthLayout from "./layouts/AuthLayout";
 import StudentLayout from "./layouts/StudentLayout";
+import StaffLayout from "./layouts/StaffLayout";
 import ForbiddenPage from "./pages/errors/ForbiddenPage";
 import NotFoundPage from "./pages/errors/NotFoundPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import LoginPage from "./pages/auth/LoginPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import ProfilePage from "./pages/profile/ProfilePage";
+import { getStaffSession } from "./services/staffSession";
 import { getStudentLocalState } from "./services/studentStorage";
 const StudentCalendarPage = lazy(() => import("./pages/student/StudentCalendarPage"));
 const StudentCoursePage = lazy(() => import("./pages/student/StudentCoursePage"));
@@ -23,6 +25,10 @@ const StudentTestRunPage = lazy(() => import("./pages/student/StudentTestRunPage
 const StudentTestResultPage = lazy(() => import("./pages/student/StudentTestResultPage"));
 const StudentSchedulePage = lazy(() => import("./pages/student/StudentSchedulePage"));
 const StudentNotificationsPage = lazy(() => import("./pages/student/StudentNotificationsPage"));
+const StaffDashboardPage = lazy(() => import("./pages/staff/StaffDashboardPage"));
+const StaffCoursesPage = lazy(() => import("./pages/staff/StaffCoursesPage"));
+const StaffCourseFormPage = lazy(() => import("./pages/staff/StaffCourseFormPage"));
+const StaffCourseDetailPage = lazy(() => import("./pages/staff/StaffCourseDetailPage"));
 
 function RouteLoading() {
   return (
@@ -37,6 +43,10 @@ function RouteLoading() {
 
 function ProtectedRoute({ children }) {
   return getStudentLocalState().authenticated ? children : <Redirect to="/login" />;
+}
+
+function StaffProtectedRoute({ children }) {
+  return getStaffSession()?.authenticated ? children : <Redirect to="/login" />;
 }
 
 export default function App() {
@@ -113,6 +123,32 @@ export default function App() {
             </Switch>
           </StudentLayout>
         </ProtectedRoute>
+      </Route>
+      <Route path={["/teacher", "/content", "/admin", "/courses"]}>
+        <StaffProtectedRoute>
+          <StaffLayout>
+            <Switch>
+            <Route exact path={["/teacher", "/content", "/admin"]}>
+              <StaffDashboardPage />
+            </Route>
+            <Route exact path="/courses">
+              <StaffCoursesPage />
+            </Route>
+            <Route exact path="/courses/create">
+              <StaffCourseFormPage />
+            </Route>
+            <Route exact path="/courses/:courseId/edit">
+              <StaffCourseFormPage />
+            </Route>
+            <Route exact path="/courses/:courseId">
+              <StaffCourseDetailPage />
+            </Route>
+            <Route>
+              <NotFoundPage />
+            </Route>
+            </Switch>
+          </StaffLayout>
+        </StaffProtectedRoute>
       </Route>
       <Route path="/profile">
         <ProtectedRoute>
