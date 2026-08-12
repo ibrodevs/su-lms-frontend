@@ -6,6 +6,12 @@ import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import PasswordInput from "../../components/common/PasswordInput";
 import useDelayedAction from "../../hooks/useDelayedAction";
+import {
+  authenticateStaff,
+  clearStaffSession,
+  getStaffHomePath,
+  getStaffSession,
+} from "../../services/staffSession";
 import { getStudentLocalState, setAuthenticated } from "../../services/studentStorage";
 
 const credentials = {
@@ -21,6 +27,11 @@ export default function LoginPage() {
   const history = useHistory();
 
   useEffect(() => {
+    const staffSession = getStaffSession();
+    if (staffSession) {
+      history.replace(getStaffHomePath(staffSession.role));
+      return;
+    }
     if (getStudentLocalState().authenticated) history.replace("/student");
   }, [history]);
 
@@ -47,8 +58,16 @@ export default function LoginPage() {
 
     execute(() => {
       if (form.email.trim() === credentials.email && form.password === credentials.password) {
+        clearStaffSession();
         setAuthenticated(true);
         history.push("/student");
+        return;
+      }
+
+      const staffSession = authenticateStaff(form.email, form.password);
+      if (staffSession) {
+        setAuthenticated(false);
+        history.push(getStaffHomePath(staffSession.role));
         return;
       }
 
@@ -117,6 +136,9 @@ export default function LoginPage() {
       <div className="su-demo-credentials">
         <span>Демо-доступ</span>
         <code>student@su.edu.kg</code>
+        <code>teacher@su.edu.kg</code>
+        <code>content@su.edu.kg</code>
+        <code>admin@su.edu.kg</code>
         <code>Demo123!</code>
       </div>
     </>
