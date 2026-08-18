@@ -7,6 +7,7 @@ import {
   Check,
   CheckCircle2,
   Edit3,
+  FolderTree,
   Layers3,
   RotateCcw,
   Send,
@@ -142,6 +143,7 @@ export default function StaffCourseDetailPage() {
             {course.review_comment ? <div className="mt-4 rounded-brand border-2 border-warning/40 bg-warning/10 p-4"><strong className="text-xs font-black uppercase tracking-wider text-warning-dark">Комментарий проверки</strong><p className="mt-2 text-sm text-graphite">{course.review_comment}</p></div> : null}
           </div>
           <div className="flex flex-wrap gap-2 lg:max-w-md lg:justify-end">
+            {can("course_structure.view") ? <Link className="inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-ecto px-4 text-sm font-black text-ecto-dark hover:bg-ecto/10" to={`/courses/${course.id}/builder`}><FolderTree aria-hidden="true" size={17} /> Course Builder</Link> : null}
             {can("courses.edit") && course.status !== "archived" ? <Link className="inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-line px-4 text-sm font-black text-graphite hover:border-lingot" to={`/courses/${course.id}/edit`}><Edit3 aria-hidden="true" size={17} /> Редактировать</Link> : null}
             {(course.status === "draft" || course.status === "needs_revision") && can("courses.submit_review") ? <button className="student-pressable inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-ecto-dark bg-ecto px-4 text-sm font-black text-white disabled:opacity-50" disabled={!readinessQuery.data?.ready_for_review || isMutating} onClick={() => ask({ action: "submit-review", title: "Отправить курс на проверку?", description: "Backend проверит готовность и переведёт курс в статус проверки.", confirmLabel: "Отправить", successTitle: "Курс отправлен на проверку" })} title={!readinessQuery.data?.ready_for_review ? "Сначала устраните замечания готовности" : undefined} type="button"><Send aria-hidden="true" size={17} /> На проверку</button> : null}
             {course.status === "under_review" && can("courses.review") ? <button className="inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-warning px-4 text-sm font-black text-warning-dark hover:bg-warning/10" disabled={isMutating} onClick={() => setIsReturnOpen(true)} type="button"><RotateCcw aria-hidden="true" size={17} /> Вернуть</button> : null}
