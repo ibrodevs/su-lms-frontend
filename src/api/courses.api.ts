@@ -70,6 +70,11 @@ export interface CourseHistoryEventDto {
   created_at: string;
 }
 
+export interface CourseCopyPayload {
+  title: string;
+  code: string;
+}
+
 export interface CourseListParams {
   page?: number;
   pageSize?: number;
@@ -134,5 +139,9 @@ export const coursesApi = {
 
   returnForRevision(courseId: number, comment: string): Promise<CourseDetailDto> {
     return apiClient.post<CourseDetailDto>(`/courses/${courseId}/return-for-revision/`, { comment });
+  },
+
+  copy(courseId: number, payload: CourseCopyPayload): Promise<CourseDetailDto> {
+    return apiClient.post<CourseDetailDto>(`/courses/${courseId}/copy/`, payload);
   },
 };

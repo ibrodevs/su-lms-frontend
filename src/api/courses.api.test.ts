@@ -72,4 +72,17 @@ describe("courses API", () => {
     expect(String(fetchMock.mock.calls[0]?.[0])).toMatch(/\/api\/v1\/courses\/12\/$/);
     expect(fetchMock.mock.calls[0]?.[1]?.method).toBe("DELETE");
   });
+
+  it("copies a course through the canonical endpoint", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ id: 13 }), { status: 201 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await coursesApi.copy(12, { title: "Course Copy", code: "CS101-COPY" });
+
+    expect(String(fetchMock.mock.calls[0]?.[0])).toMatch(/\/api\/v1\/courses\/12\/copy\/$/);
+    expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({
+      method: "POST",
+      body: JSON.stringify({ title: "Course Copy", code: "CS101-COPY" }),
+    });
+  });
 });

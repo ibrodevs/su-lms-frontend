@@ -6,7 +6,9 @@ import {
   CalendarDays,
   Check,
   CheckCircle2,
+  Copy,
   Edit3,
+  Eye,
   FolderTree,
   Layers3,
   RotateCcw,
@@ -20,10 +22,11 @@ import { useState } from "react";
 import { Link, useHistory, useParams } from "react-router-dom";
 import { courseKeys } from "../../api/courseKeys";
 import { coursesApi } from "../../api/courses.api";
-import type { CourseLifecycleAction } from "../../api/courses.api";
+import type { CourseCopyPayload, CourseLifecycleAction } from "../../api/courses.api";
 import { queryClient } from "../../api/queryClient";
 import { useAuth } from "../../auth/useAuth";
 import ApiCourseStatusBadge from "../../components/staff/ApiCourseStatusBadge";
+import CourseCopyDialog from "../../components/staff/CourseCopyDialog";
 import StaffToast from "../../components/staff/StaffToast";
 import type { ToastMessage } from "../../components/staff/StaffToast";
 import ConfirmDialog from "../../components/student/ConfirmDialog";
@@ -80,6 +83,7 @@ export default function StaffCourseDetailPage() {
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [isReturnOpen, setIsReturnOpen] = useState(false);
   const [returnComment, setReturnComment] = useState("");
+  const [isCopyOpen, setIsCopyOpen] = useState(false);
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const enabled = Number.isInteger(numericCourseId) && numericCourseId > 0;
   const courseQuery = useQuery({ queryKey: courseKeys.detail(numericCourseId), queryFn: () => coursesApi.detail(numericCourseId), enabled });
@@ -113,12 +117,20 @@ export default function StaffCourseDetailPage() {
     },
   });
 
+  const copyMutation = useMutation({
+    mutationFn: (payload: CourseCopyPayload) => coursesApi.copy(numericCourseId, payload),
+    onSuccess: async (copiedCourse) => {
+      await queryClient.invalidateQueries({ queryKey: courseKeys.lists() });
+      historyNavigation.push(`/courses/${copiedCourse.id}`);
+    },
+  });
+
   if (!enabled) return <StatePanel description="Идентификатор курса в адресе должен быть положительным числом." kind="error" title="Некорректный адрес курса" />;
   if (courseQuery.isPending) return <StatePanel description="Получаем карточку курса с сервера." kind="loading" title="Загрузка курса" />;
   if (courseQuery.isError) return <StatePanel action={<Link className="mt-2 text-sm font-black text-macaw-dark hover:underline" to="/courses">Вернуться к курсам</Link>} description={courseQuery.error.message} kind="error" title="Курс недоступен" />;
 
   const course = courseQuery.data;
-  const isMutating = lifecycleMutation.isPending || deleteMutation.isPending;
+  const isMutating = lifecycleMutation.isPending || deleteMutation.isPending || copyMutation.isPending;
   const mutationError = lifecycleMutation.error ?? deleteMutation.error;
   const ask = (action: PendingAction) => setPendingAction(action);
   const confirmAction = () => {
@@ -143,7 +155,9 @@ export default function StaffCourseDetailPage() {
             {course.review_comment ? <div className="mt-4 rounded-brand border-2 border-warning/40 bg-warning/10 p-4"><strong className="text-xs font-black uppercase tracking-wider text-warning-dark">Комментарий проверки</strong><p className="mt-2 text-sm text-graphite">{course.review_comment}</p></div> : null}
           </div>
           <div className="flex flex-wrap gap-2 lg:max-w-md lg:justify-end">
+            {can("course_structure.view") ? <Link className="inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-macaw px-4 text-sm font-black text-macaw-dark hover:bg-macaw/10" to={`/courses/${course.id}/preview`}><Eye aria-hidden="true" size={17} /> Preview</Link> : null}
             {can("course_structure.view") ? <Link className="inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-ecto px-4 text-sm font-black text-ecto-dark hover:bg-ecto/10" to={`/courses/${course.id}/builder`}><FolderTree aria-hidden="true" size={17} /> Course Builder</Link> : null}
+            {can("courses.copy") ? <button className="inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-line px-4 text-sm font-black text-graphite hover:border-lingot" disabled={isMutating} onClick={() => { copyMutation.reset(); setIsCopyOpen(true); }} type="button"><Copy aria-hidden="true" size={17} /> Копировать</button> : null}
             {can("courses.edit") && course.status !== "archived" ? <Link className="inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-line px-4 text-sm font-black text-graphite hover:border-lingot" to={`/courses/${course.id}/edit`}><Edit3 aria-hidden="true" size={17} /> Редактировать</Link> : null}
             {(course.status === "draft" || course.status === "needs_revision") && can("courses.submit_review") ? <button className="student-pressable inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-ecto-dark bg-ecto px-4 text-sm font-black text-white disabled:opacity-50" disabled={!readinessQuery.data?.ready_for_review || isMutating} onClick={() => ask({ action: "submit-review", title: "Отправить курс на проверку?", description: "Backend проверит готовность и переведёт курс в статус проверки.", confirmLabel: "Отправить", successTitle: "Курс отправлен на проверку" })} title={!readinessQuery.data?.ready_for_review ? "Сначала устраните замечания готовности" : undefined} type="button"><Send aria-hidden="true" size={17} /> На проверку</button> : null}
             {course.status === "under_review" && can("courses.review") ? <button className="inline-flex min-h-11 items-center gap-2 rounded-brand border-2 border-warning px-4 text-sm font-black text-warning-dark hover:bg-warning/10" disabled={isMutating} onClick={() => setIsReturnOpen(true)} type="button"><RotateCcw aria-hidden="true" size={17} /> Вернуть</button> : null}
@@ -170,6 +184,8 @@ export default function StaffCourseDetailPage() {
       <ConfirmDialog confirmLabel={pendingAction?.confirmLabel ?? "Продолжить"} description={pendingAction?.description ?? ""} isOpen={Boolean(pendingAction)} onCancel={() => setPendingAction(null)} onConfirm={confirmAction} title={pendingAction?.title ?? "Подтвердите действие"} />
 
       {isReturnOpen ? <div aria-labelledby="return-course-title" aria-modal="true" className="fixed inset-0 z-[110] grid place-items-center bg-midnight/70 p-4" role="dialog"><div className="w-full max-w-lg rounded-brand border-2 border-line bg-paper p-5"><div className="flex items-start justify-between gap-4"><div><h2 className="text-xl font-black text-navy" id="return-course-title">Вернуть курс на доработку</h2><p className="mt-2 text-sm text-ash">Комментарий обязателен и будет сохранён backend.</p></div><button aria-label="Закрыть" className="grid size-9 place-items-center rounded-brand border-2 border-line text-ash" onClick={() => setIsReturnOpen(false)} type="button"><X aria-hidden="true" size={17} /></button></div><label className="mt-5 grid gap-2 text-xs font-black uppercase tracking-wider text-ash">Причина возврата<textarea autoFocus className="min-h-32 rounded-brand border-2 border-line p-3 text-sm font-bold normal-case tracking-normal text-graphite outline-none focus:border-macaw" onChange={(event) => setReturnComment(event.target.value)} placeholder="Опишите, что необходимо исправить" value={returnComment} /></label><div className="mt-5 grid grid-cols-2 gap-3"><button className="min-h-11 rounded-brand border-2 border-line text-sm font-black text-graphite" onClick={() => setIsReturnOpen(false)} type="button">Отмена</button><button className="student-pressable min-h-11 rounded-brand border-2 border-warning bg-warning px-4 text-sm font-black text-midnight disabled:opacity-50" disabled={!returnComment.trim() || isMutating} onClick={() => lifecycleMutation.mutate({ action: "return-for-revision", comment: returnComment.trim() })} type="button">Вернуть</button></div></div></div> : null}
+
+      {isCopyOpen ? <CourseCopyDialog error={copyMutation.error?.message} initialCode={`${course.code}-COPY`} initialTitle={`${course.title} — копия`} isPending={copyMutation.isPending} onClose={() => { copyMutation.reset(); setIsCopyOpen(false); }} onSubmit={(payload) => copyMutation.mutate(payload)} submitLabel="Скопировать" title="Копировать курс" /> : null}
 
       <StaffToast message={toast} onClose={() => setToast(null)} />
     </div>
