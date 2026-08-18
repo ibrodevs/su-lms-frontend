@@ -44,4 +44,43 @@ describe("learning structure API", () => {
       body: JSON.stringify({ type: "lesson", items: [{ id: 11, order: 1 }, { id: 10, order: 2 }] }),
     });
   });
+
+  it("uses lesson, material and SCORM endpoints with multipart uploads", async () => {
+    const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(new Response(JSON.stringify({}), { status: 200 })));
+    vi.stubGlobal("fetch", fetchMock);
+    const file = new File(["content"], "guide.txt", { type: "text/plain" });
+    const scorm = new File(["zip"], "course.zip", { type: "application/zip" });
+
+    await learningApi.lesson(12);
+    await learningApi.lessonMaterials(12);
+    await learningApi.createLinkMaterial(12, { title: "Library", type: "library_link", external_url: "https://example.com" });
+    await learningApi.uploadMaterial(12, { title: "Guide", type: "other", file, downloadAllowed: true });
+    await learningApi.updateMaterial(9, { title: "Updated guide" });
+    await learningApi.scormPackages(12);
+    await learningApi.uploadScorm(12, "Interactive lesson", scorm);
+
+    const paths = fetchMock.mock.calls.map((call) => new URL(String(call[0]), "http://localhost").pathname);
+    expect(paths).toEqual([
+      "/api/v1/lessons/12/",
+      "/api/v1/lessons/12/materials/",
+      "/api/v1/lessons/12/materials/",
+      "/api/v1/lessons/12/materials/",
+      "/api/v1/materials/9/",
+      "/api/v1/lessons/12/scorm-packages/",
+      "/api/v1/lessons/12/scorm-packages/",
+    ]);
+    expect(fetchMock.mock.calls[3]?.[1]?.body).toBeInstanceOf(FormData);
+    expect(fetchMock.mock.calls[6]?.[1]?.body).toBeInstanceOf(FormData);
+  });
+
+  it("builds backend course material filters", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("[]", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await learningApi.courseMaterials(6, { search: "guide", type: "pdf", lesson: 12, module: 4 });
+
+    const url = new URL(String(fetchMock.mock.calls[0]?.[0]), "http://localhost");
+    expect(url.pathname).toBe("/api/v1/courses/6/materials/");
+    expect(Object.fromEntries(url.searchParams)).toEqual({ search: "guide", type: "pdf", lesson: "12", module: "4" });
+  });
 });
