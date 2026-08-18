@@ -17,6 +17,7 @@ const LEGACY_STAFF_USER_IDS: Record<StaffRole, string> = {
 };
 
 export const STUDENT_ROLES: RoleCode[] = ["student"];
+export const ADMIN_ROLES: RoleCode[] = ["lms_admin", "super_admin"];
 export const STAFF_ROLES: RoleCode[] = [
   "teacher",
   "teaching_assistant",
@@ -65,4 +66,3 @@ export function hasAnyRole(
 ): boolean {
   return allowedRoles.some((role) => userRoles.includes(role));
 }
-

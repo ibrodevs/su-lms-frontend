@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import { Redirect, Route, Switch } from "react-router-dom";
-import { STAFF_ROLES, STUDENT_ROLES } from "./auth/roles";
+import { ADMIN_ROLES, STAFF_ROLES, STUDENT_ROLES } from "./auth/roles";
 import { GuestRoute } from "./components/auth/GuestRoute";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import AuthLayout from "./layouts/AuthLayout";
@@ -35,6 +35,7 @@ const LessonEditorPage = lazy(() => import("./pages/staff/LessonEditorPage"));
 const StaffMaterialsPage = lazy(() => import("./pages/staff/StaffMaterialsPage"));
 const CoursePreviewPage = lazy(() => import("./pages/staff/CoursePreviewPage"));
 const StaffTemplatesPage = lazy(() => import("./pages/staff/StaffTemplatesPage"));
+const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 
 function RouteLoading() {
   return (
@@ -135,6 +136,11 @@ export default function App() {
             <Switch>
             <Route exact path={["/teacher", "/content", "/admin"]}>
               <StaffDashboardPage />
+            </Route>
+            <Route exact path="/admin/users">
+              <ProtectedRoute allowedRoles={ADMIN_ROLES}>
+                <AdminUsersPage />
+              </ProtectedRoute>
             </Route>
             <Route exact path="/courses">
               <StaffCoursesPage />

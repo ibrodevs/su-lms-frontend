@@ -11,6 +11,7 @@ import {
   Menu,
   Plus,
   Search,
+  Users,
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -24,6 +25,7 @@ import { staffRoleLabels } from "../utils/staffDisplay";
 
 const pageTitles: Array<[RegExp, string]> = [
   [/^\/(teacher|content|admin)$/, "Рабочий стол"],
+  [/^\/admin\/users$/, "Пользователи"],
   [/^\/courses\/create$/, "Создание курса"],
   [/^\/courses\/[^/]+\/edit$/, "Редактирование курса"],
   [/^\/courses\/[^/]+\/builder$/, "Структура курса"],
@@ -77,6 +79,14 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
         label: "Курсы на проверке",
         to: "/courses?status=under-review",
         exact: false,
+      });
+    }
+    if (role === "admin") {
+      items.push({
+        icon: Users,
+        label: "Пользователи",
+        to: "/admin/users",
+        exact: true,
       });
     }
     return items;
