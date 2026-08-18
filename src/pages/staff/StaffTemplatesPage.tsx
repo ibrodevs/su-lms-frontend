@@ -15,10 +15,10 @@ import {
   getCourseTemplates,
   getCourseTemplateStats,
 } from "../../services/courseTemplateService";
-import { getStaffSession } from "../../services/staffSession";
+import { useLegacyStaffSession } from "../../auth/useLegacyStaffSession";
 
 export default function StaffTemplatesPage() {
-  const session = getStaffSession();
+  const session = useLegacyStaffSession();
   const [query, setQuery] = useState("");
   const isLoading = useMockLoading();
   const templates = useMemo(() => getCourseTemplates(), []);

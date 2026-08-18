@@ -41,7 +41,7 @@ import {
   subscribeCourseStore,
 } from "../../services/courseService";
 import type { CourseReviewIssue } from "../../services/courseService";
-import { getStaffSession } from "../../services/staffSession";
+import { useLegacyStaffSession } from "../../auth/useLegacyStaffSession";
 import { canStaffUserAccessCourse } from "../../services/staffAuthorization";
 import { copyCourse } from "../../services/courseTemplateService";
 import { getCourseMaterials } from "../../services/materialService";
@@ -70,7 +70,7 @@ const dateFormatter = new Intl.DateTimeFormat("ru-RU", {
 export default function StaffCourseDetailPage() {
   const { courseId } = useParams<RouteParams>();
   const historyNavigation = useHistory();
-  const session = getStaffSession();
+  const session = useLegacyStaffSession();
   const [, setRevision] = useState(0);
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [pendingAction, setPendingAction] = useState<PendingStatusAction | null>(null);

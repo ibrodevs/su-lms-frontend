@@ -24,7 +24,7 @@ import {
   getCourseTemplate,
   getCourseTemplateStats,
 } from "../../services/courseTemplateService";
-import { getStaffSession } from "../../services/staffSession";
+import { useLegacyStaffSession } from "../../auth/useLegacyStaffSession";
 import { canStaffUserAccessCourse } from "../../services/staffAuthorization";
 import type { CourseInput, CourseLanguage } from "../../types/staff";
 
@@ -76,7 +76,7 @@ export default function StaffCourseFormPage() {
   const { courseId } = useParams<RouteParams>();
   const history = useHistory();
   const location = useLocation();
-  const session = getStaffSession();
+  const session = useLegacyStaffSession();
   const isEditing = Boolean(courseId);
   const existingCourse = courseId ? getCourse(courseId) : null;
   const templateId = useMemo(

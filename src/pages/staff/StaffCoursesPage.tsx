@@ -28,7 +28,7 @@ import {
   getVisibleCourses,
   subscribeCourseStore,
 } from "../../services/courseService";
-import { getStaffSession } from "../../services/staffSession";
+import { useLegacyStaffSession } from "../../auth/useLegacyStaffSession";
 import { copyCourse } from "../../services/courseTemplateService";
 import type { CourseFilters, CourseLanguage, CourseSortField, CourseStatus } from "../../types/staff";
 import { courseLanguageLabels, courseStatusLabels } from "../../utils/staffDisplay";
@@ -53,7 +53,7 @@ const dateFormatter = new Intl.DateTimeFormat("ru-RU", {
 });
 
 export default function StaffCoursesPage() {
-  const session = getStaffSession();
+  const session = useLegacyStaffSession();
   const location = useLocation();
   const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const [filters, setFilters] = useState<CourseFilters>(() => ({

@@ -11,22 +11,14 @@ import {
   Menu,
   Plus,
   Search,
-  Settings2,
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { Link, NavLink, useHistory, useLocation } from "react-router-dom";
+import { getHomePathForRoles, getStaffRole } from "../auth/roles";
+import { useAuth } from "../auth/useAuth";
 import ConfirmDialog from "../components/student/ConfirmDialog";
-import { mockStaffUsers } from "../data/mock/mockUsers";
-import {
-  clearStaffSession,
-  getCurrentStaffUser,
-  getStaffHomePath,
-  getStaffSession,
-  switchStaffRole,
-} from "../services/staffSession";
-import type { StaffRole } from "../types/staff";
 import { cn } from "../utils/cn";
 import { staffRoleLabels } from "../utils/staffDisplay";
 
@@ -54,15 +46,9 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [session, setSession] = useState(getStaffSession);
-  const user = useMemo(
-    () =>
-      mockStaffUsers.find((candidate) => candidate.id === session?.userId) ??
-      getCurrentStaffUser(),
-    [session],
-  );
-  const role = session?.role ?? "teacher";
-  const dashboardPath = getStaffHomePath(role);
+  const { can, logout: logoutSession, user } = useAuth();
+  const role = getStaffRole(user?.roles ?? []) ?? "teacher";
+  const dashboardPath = getHomePathForRoles(user?.roles ?? []);
   const pageTitle =
     pageTitles.find(([pattern]) => pattern.test(location.pathname))?.[1] ?? "SU LMS";
 
@@ -77,13 +63,15 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
       },
       { icon: Files, label: "Материалы", to: "/materials", exact: true },
     ];
-    if (role !== "teacher") {
+    if (can("courses.copy")) {
       items.push({
         icon: LayoutTemplate,
         label: "Шаблоны",
         to: "/templates",
         exact: true,
       });
+    }
+    if (can("courses.review")) {
       items.push({
         icon: FileCheck2,
         label: "Курсы на проверке",
@@ -92,7 +80,7 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
       });
     }
     return items;
-  }, [dashboardPath, role]);
+  }, [can, dashboardPath, role]);
 
   useEffect(() => {
     setIsMobileOpen(false);
@@ -106,20 +94,18 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
     history.push(query ? `/courses?q=${encodeURIComponent(query)}` : "/courses");
   };
 
-  const handleRoleChange = (nextRole: StaffRole) => {
-    const nextSession = switchStaffRole(nextRole);
-    if (!nextSession) return;
-    setSession(nextSession);
-    history.push(getStaffHomePath(nextRole));
+  const logout = async () => {
+    try {
+      await logoutSession();
+    } finally {
+      setIsLogoutOpen(false);
+      history.replace("/login");
+    }
   };
 
-  const logout = () => {
-    clearStaffSession();
-    setIsLogoutOpen(false);
-    history.push("/login");
-  };
-
-  const initials = user ? `${user.firstName[0]}${user.lastName[0]}` : "SU";
+  const initials = user
+    ? `${user.first_name.charAt(0)}${user.last_name.charAt(0)}` || "SU"
+    : "SU";
 
   return (
     <div className="student-theme staff-theme min-h-screen bg-paper">
@@ -175,30 +161,6 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
           ))}
         </nav>
 
-        <div className="mx-4 rounded-brand border-2 border-eel bg-eel/20 p-4">
-          <div className="flex items-center gap-2 text-sm font-black text-navy">
-            <Settings2 aria-hidden="true" size={17} />
-            Mock-роль
-          </div>
-          <div className="mt-3 grid gap-2">
-            {(Object.keys(staffRoleLabels) as StaffRole[]).map((candidateRole) => (
-              <button
-                className={cn(
-                  "rounded-brand border-2 px-3 py-2 text-left text-xs font-black",
-                  candidateRole === role
-                    ? "border-ecto-dark bg-ecto text-white"
-                    : "border-line bg-paper text-graphite hover:border-lingot",
-                )}
-                key={candidateRole}
-                onClick={() => handleRoleChange(candidateRole)}
-                type="button"
-              >
-                {staffRoleLabels[candidateRole]}
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div className="mt-auto border-t-2 border-line p-4">
           <button
             className="flex min-h-11 w-full items-center gap-3 rounded-brand border-2 border-transparent px-3 text-sm font-extrabold text-danger hover:border-danger/20 hover:bg-danger/5"
@@ -243,14 +205,16 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
             />
           </form>
 
-          <Link
-            aria-label="Создать курс"
-            className="student-pressable hidden min-h-11 items-center gap-2 rounded-brand border-2 border-ecto-dark bg-ecto px-4 text-sm font-black text-white sm:flex"
-            to="/courses/create"
-          >
-            <Plus aria-hidden="true" size={18} />
-            Создать
-          </Link>
+          {can("courses.create") ? (
+            <Link
+              aria-label="Создать курс"
+              className="student-pressable hidden min-h-11 items-center gap-2 rounded-brand border-2 border-ecto-dark bg-ecto px-4 text-sm font-black text-white sm:flex"
+              to="/courses/create"
+            >
+              <Plus aria-hidden="true" size={18} />
+              Создать
+            </Link>
+          ) : null}
 
           <div className="relative">
             <button
@@ -286,14 +250,14 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
                 {initials}
               </span>
               <span className="hidden max-w-32 truncate text-xs font-black text-graphite xl:block">
-                {user?.firstName} {user?.lastName}
+                {user?.first_name} {user?.last_name}
               </span>
               <ChevronDown aria-hidden="true" className="text-ash" size={15} />
             </button>
             {isProfileOpen ? (
               <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-64 rounded-brand border-2 border-line bg-paper p-3">
                 <strong className="block text-sm font-black text-graphite">
-                  {user?.firstName} {user?.lastName}
+                  {user?.first_name} {user?.last_name}
                 </strong>
                 <span className="mt-1 block text-xs text-ash">{user?.email}</span>
                 <span className="mt-3 inline-flex rounded-brand border-2 border-eel bg-eel/20 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-ecto-dark">
@@ -311,7 +275,7 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
 
       <ConfirmDialog
         confirmLabel="Выйти"
-        description="Текущая mock-сессия будет завершена."
+        description="Текущая сессия будет завершена на сервере."
         isOpen={isLogoutOpen}
         onCancel={() => setIsLogoutOpen(false)}
         onConfirm={logout}

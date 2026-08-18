@@ -20,15 +20,14 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, NavLink, useHistory, useLocation } from "react-router-dom";
+import { useAuth } from "../auth/useAuth";
 import ConfirmDialog from "../components/student/ConfirmDialog";
-import { mockStudent } from "../data/student/mockStudent";
 import { mockNotifications } from "../data/student/mockNotifications";
 import { mockCourses } from "../data/student/mockCourses";
 import {
   getSidebarCollapsed,
   getStudentLocalState,
   markNotificationRead,
-  setAuthenticated,
   setSidebarCollapsed,
   subscribeStudentStorage,
 } from "../services/studentStorage";
@@ -117,11 +116,14 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const location = useLocation();
   const history = useHistory();
+  const { logout: logoutSession, user } = useAuth();
   const pageTitle = useMemo(
     () => getPageTitle(location.pathname),
     [location.pathname],
   );
-  const initials = `${mockStudent.firstName[0]}${mockStudent.lastName[0]}`;
+  const initials = user
+    ? `${user.first_name.charAt(0)}${user.last_name.charAt(0)}` || "SU"
+    : "SU";
   const [storageRevision, setStorageRevision] = useState(0);
   useEffect(
     () => subscribeStudentStorage(() => setStorageRevision((value) => value + 1)),
@@ -172,11 +174,14 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
     setSidebarCollapsed(isCollapsed);
   }, [isCollapsed]);
 
-  const logout = useCallback(() => {
-    setIsLogoutOpen(false);
-    setAuthenticated(false);
-    history.push("/login");
-  }, [history]);
+  const logout = useCallback(async () => {
+    try {
+      await logoutSession();
+    } finally {
+      setIsLogoutOpen(false);
+      history.replace("/login");
+    }
+  }, [history, logoutSession]);
 
   return (
     <div className="student-theme">
@@ -414,10 +419,10 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
                 </span>
                 <span className="hidden min-w-0 text-right sm:grid">
                   <strong className="truncate text-sm font-black text-graphite">
-                    {mockStudent.firstName} {mockStudent.lastName}
+                    {user?.first_name} {user?.last_name}
                   </strong>
                   <small className="truncate text-[11px] font-bold text-ash">
-                    {mockStudent.group} · {mockStudent.id}
+                    {user?.profile?.group ?? "Группа не указана"} · {user?.profile?.student_id ?? "ID не указан"}
                   </small>
                 </span>
                 <ChevronDown className="hidden text-ash sm:block" size={15} />
@@ -467,7 +472,7 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
 
       <ConfirmDialog
         confirmLabel="Выйти"
-        description="Текущая сессия будет завершена. Сохранённый учебный прогресс останется на устройстве."
+        description="Текущая сессия будет завершена на сервере."
         isOpen={isLogoutOpen}
         onCancel={closeLogout}
         onConfirm={logout}

@@ -23,7 +23,7 @@ import {
   type PreviewLesson,
   type PreviewModule,
 } from "../../services/coursePreviewService";
-import { getStaffSession } from "../../services/staffSession";
+import { useLegacyStaffSession } from "../../auth/useLegacyStaffSession";
 import { canStaffUserAccessCourse } from "../../services/staffAuthorization";
 import type { StaffMaterial } from "../../types/staff";
 import { formatFileSize, staffMaterialTypeLabels } from "../../utils/materialDisplay";
@@ -40,7 +40,7 @@ const languageLabels = {
 
 export default function CoursePreviewPage() {
   const { courseId } = useParams<RouteParams>();
-  const session = getStaffSession();
+  const session = useLegacyStaffSession();
   const [, setRevision] = useState(0);
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   const [previewMaterial, setPreviewMaterial] = useState<StaffMaterial | null>(null);

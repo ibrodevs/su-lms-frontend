@@ -11,7 +11,6 @@ export interface AssignmentState {
 
 export interface StudentLocalState {
   version: 1;
-  authenticated: boolean;
   profile: Record<string, string>;
   assignments: Record<string, AssignmentState>;
   testResults: Record<string, TestResult>;
@@ -22,7 +21,6 @@ export interface StudentLocalState {
 
 const defaults: StudentLocalState = {
   version: 1,
-  authenticated: false,
   profile: {},
   assignments: {},
   testResults: {},
@@ -61,7 +59,6 @@ function write<T>(key: string, value: T): void {
 export function getStudentLocalState(): StudentLocalState {
   return {
     version: 1,
-    authenticated: read("authenticated", defaults.authenticated),
     profile: read("profile", defaults.profile),
     assignments: read("assignments", defaults.assignments),
     testResults: read("test-results", defaults.testResults),
@@ -72,10 +69,6 @@ export function getStudentLocalState(): StudentLocalState {
     ),
     sidebarCollapsed: read("sidebar-collapsed", defaults.sidebarCollapsed),
   };
-}
-
-export function setAuthenticated(value: boolean): void {
-  write("authenticated", value);
 }
 
 export function saveProfile(profile: Record<string, string>): void {

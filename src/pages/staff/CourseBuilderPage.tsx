@@ -21,7 +21,7 @@ import {
   moveModule,
   moveTopic,
 } from "../../services/courseStructureService";
-import { getStaffSession } from "../../services/staffSession";
+import { useLegacyStaffSession } from "../../auth/useLegacyStaffSession";
 import { canStaffUserAccessCourse } from "../../services/staffAuthorization";
 
 interface RouteParams {
@@ -42,7 +42,7 @@ const entityLabels: Record<StructureEntityKind, string> = {
 
 export default function CourseBuilderPage() {
   const { courseId } = useParams<RouteParams>();
-  const session = getStaffSession();
+  const session = useLegacyStaffSession();
   const [, setRevision] = useState(0);
   const [selection, setSelection] = useState<StructureSelection | null>(null);
   const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);

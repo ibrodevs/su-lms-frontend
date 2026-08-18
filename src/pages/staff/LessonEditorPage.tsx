@@ -11,7 +11,7 @@ import ConfirmDialog from "../../components/student/ConfirmDialog";
 import { getCourse, subscribeCourseStore } from "../../services/courseService";
 import { getCourseStructure, getLesson, updateLesson } from "../../services/courseStructureService";
 import { getMaterialsForLesson } from "../../services/materialService";
-import { getStaffSession } from "../../services/staffSession";
+import { useLegacyStaffSession } from "../../auth/useLegacyStaffSession";
 import { canStaffUserAccessCourse } from "../../services/staffAuthorization";
 import type { LessonInput, LessonStatus, LessonType, LessonVideoKind, ReleaseConditionType } from "../../types/staff";
 import { cn } from "../../utils/cn";
@@ -40,7 +40,7 @@ function Field({ children, error, label, required = false }: { children: React.R
 export default function LessonEditorPage() {
   const { courseId, lessonId } = useParams<RouteParams>();
   const history = useHistory();
-  const session = getStaffSession();
+  const session = useLegacyStaffSession();
   const [revision, setRevision] = useState(0);
   const course = useMemo(() => revision >= 0 ? getCourse(courseId) : null, [courseId, revision]);
   const lesson = useMemo(() => revision >= 0 ? getLesson(lessonId) : null, [lessonId, revision]);

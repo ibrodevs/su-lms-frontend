@@ -1,5 +1,8 @@
 import { lazy, Suspense } from "react";
 import { Redirect, Route, Switch } from "react-router-dom";
+import { STAFF_ROLES, STUDENT_ROLES } from "./auth/roles";
+import { GuestRoute } from "./components/auth/GuestRoute";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import AuthLayout from "./layouts/AuthLayout";
 import StudentLayout from "./layouts/StudentLayout";
 import StaffLayout from "./layouts/StaffLayout";
@@ -9,8 +12,6 @@ import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import LoginPage from "./pages/auth/LoginPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import ProfilePage from "./pages/profile/ProfilePage";
-import { getStaffSession } from "./services/staffSession";
-import { getStudentLocalState } from "./services/studentStorage";
 const StudentCalendarPage = lazy(() => import("./pages/student/StudentCalendarPage"));
 const StudentCoursePage = lazy(() => import("./pages/student/StudentCoursePage"));
 const StudentCoursesPage = lazy(() => import("./pages/student/StudentCoursesPage"));
@@ -46,22 +47,16 @@ function RouteLoading() {
   );
 }
 
-function ProtectedRoute({ children }) {
-  return getStudentLocalState().authenticated ? children : <Redirect to="/login" />;
-}
-
-function StaffProtectedRoute({ children }) {
-  return getStaffSession()?.authenticated ? children : <Redirect to="/login" />;
-}
-
 export default function App() {
   return (
     <Suspense fallback={<RouteLoading />}>
       <Switch>
       <Route path="/login">
-        <AuthLayout>
-          <LoginPage />
-        </AuthLayout>
+        <GuestRoute>
+          <AuthLayout>
+            <LoginPage />
+          </AuthLayout>
+        </GuestRoute>
       </Route>
       <Route path="/forgot-password">
         <AuthLayout>
@@ -74,7 +69,7 @@ export default function App() {
         </AuthLayout>
       </Route>
       <Route path="/student">
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={STUDENT_ROLES}>
           <StudentLayout>
             <Switch>
             <Route exact path="/student">
@@ -130,12 +125,12 @@ export default function App() {
         </ProtectedRoute>
       </Route>
       <Route exact path="/courses/:courseId/preview">
-        <StaffProtectedRoute>
+        <ProtectedRoute allowedRoles={STAFF_ROLES}>
           <CoursePreviewPage />
-        </StaffProtectedRoute>
+        </ProtectedRoute>
       </Route>
       <Route path={["/teacher", "/content", "/admin", "/courses", "/materials", "/templates"]}>
-        <StaffProtectedRoute>
+        <ProtectedRoute allowedRoles={STAFF_ROLES}>
           <StaffLayout>
             <Switch>
             <Route exact path={["/teacher", "/content", "/admin"]}>
@@ -170,10 +165,10 @@ export default function App() {
             </Route>
             </Switch>
           </StaffLayout>
-        </StaffProtectedRoute>
+        </ProtectedRoute>
       </Route>
       <Route path="/profile">
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={STUDENT_ROLES}>
           <StudentLayout>
             {({ openLogout }) => <ProfilePage openLogout={openLogout} />}
           </StudentLayout>

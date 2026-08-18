@@ -10,8 +10,9 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../auth/useAuth";
+import { useLegacyStaffSession } from "../../auth/useLegacyStaffSession";
 import CourseStatusBadge from "../../components/staff/CourseStatusBadge";
-import { mockDepartments } from "../../data/mock/mockOrganization";
 import { mockStaffUsers } from "../../data/mock/mockUsers";
 import { useMockLoading } from "../../hooks/useMockLoading";
 import {
@@ -19,7 +20,6 @@ import {
   getVisibleCourses,
   subscribeCourseStore,
 } from "../../services/courseService";
-import { getCurrentStaffUser, getStaffSession } from "../../services/staffSession";
 import type { CourseStatus } from "../../types/staff";
 
 const dateFormatter = new Intl.DateTimeFormat("ru-RU", {
@@ -29,8 +29,8 @@ const dateFormatter = new Intl.DateTimeFormat("ru-RU", {
 });
 
 export default function StaffDashboardPage() {
-  const session = getStaffSession();
-  const user = getCurrentStaffUser();
+  const session = useLegacyStaffSession();
+  const { can, user } = useAuth();
   const [revision, setRevision] = useState(0);
   const isLoading = useMockLoading();
 
@@ -60,7 +60,6 @@ export default function StaffDashboardPage() {
   const countStatus = (status: CourseStatus) =>
     courses.filter((course) => course.status === status).length;
   const isTeacher = session?.role === "teacher";
-  const department = mockDepartments.find((item) => item.id === user?.departmentId);
   const stats = isTeacher
     ? [
         { label: "Активные курсы", value: courses.filter((course) => course.status !== "archived").length, icon: BookOpen, color: "text-macaw-dark bg-macaw/10" },
@@ -97,21 +96,23 @@ export default function StaffDashboardPage() {
             {isTeacher ? "Кабинет преподавателя" : "Управление SU LMS"}
           </span>
           <h1 className="mt-2 text-3xl font-black tracking-tight text-navy sm:text-4xl">
-            {user?.firstName}, добрый день
+            {user?.first_name || user?.full_name || "Коллега"}, добрый день
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-ash">
             {isTeacher
-              ? `${user?.position ?? "Преподаватель"} · ${department?.name ?? "Кафедра"}. Продолжайте подготовку назначенных курсов.`
+              ? "Продолжайте подготовку назначенных учебных курсов."
               : "Контролируйте подготовку курсов, проверяйте содержание и управляйте публикацией."}
           </p>
         </div>
-        <Link
-          className="student-pressable inline-flex min-h-12 items-center justify-center gap-2 rounded-brand border-2 border-ecto-dark bg-ecto px-5 text-sm font-black text-white"
-          to="/courses/create"
-        >
-          <Plus aria-hidden="true" size={19} />
-          Создать курс
-        </Link>
+        {can("courses.create") ? (
+          <Link
+            className="student-pressable inline-flex min-h-12 items-center justify-center gap-2 rounded-brand border-2 border-ecto-dark bg-ecto px-5 text-sm font-black text-white"
+            to="/courses/create"
+          >
+            <Plus aria-hidden="true" size={19} />
+            Создать курс
+          </Link>
+        ) : null}
       </section>
 
       <section aria-label="Статистика курсов" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">

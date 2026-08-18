@@ -5,13 +5,13 @@ import MaterialPreviewDialog from "../../components/staff/MaterialPreviewDialog"
 import { getCourseStructure } from "../../services/courseStructureService";
 import { getVisibleCourses, subscribeCourseStore } from "../../services/courseService";
 import { getAllMaterials } from "../../services/materialService";
-import { getStaffSession } from "../../services/staffSession";
+import { useLegacyStaffSession } from "../../auth/useLegacyStaffSession";
 import type { StaffMaterial, StaffMaterialType } from "../../types/staff";
 import { cn } from "../../utils/cn";
 import { formatFileSize, staffMaterialTypeLabels } from "../../utils/materialDisplay";
 
 export default function StaffMaterialsPage() {
-  const session = getStaffSession();
+  const session = useLegacyStaffSession();
   const [revision, setRevision] = useState(0);
   const [query, setQuery] = useState("");
   const [type, setType] = useState<StaffMaterialType | "all">("all");
