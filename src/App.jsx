@@ -28,7 +28,7 @@ const StudentSchedulePage = lazy(() => import("./pages/student/StudentSchedulePa
 const StudentNotificationsPage = lazy(() => import("./pages/student/StudentNotificationsPage"));
 const StaffDashboardPage = lazy(() => import("./pages/staff/StaffDashboardPage"));
 const StaffCoursesPage = lazy(() => import("./pages/staff/StaffCoursesPage"));
-const StaffCourseFormPage = lazy(() => import("./pages/staff/StaffCourseFormPage"));
+const CourseFormBlockedPage = lazy(() => import("./pages/staff/CourseFormBlockedPage"));
 const StaffCourseDetailPage = lazy(() => import("./pages/staff/StaffCourseDetailPage"));
 const CourseBuilderPage = lazy(() => import("./pages/staff/CourseBuilderPage"));
 const LessonEditorPage = lazy(() => import("./pages/staff/LessonEditorPage"));
@@ -146,10 +146,10 @@ export default function App() {
               <StaffCoursesPage />
             </Route>
             <Route exact path="/courses/create">
-              <StaffCourseFormPage />
+              <CourseFormBlockedPage />
             </Route>
             <Route exact path="/courses/:courseId/edit">
-              <StaffCourseFormPage />
+              <CourseFormBlockedPage />
             </Route>
             <Route exact path="/courses/:courseId/builder">
               <CourseBuilderPage />
