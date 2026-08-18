@@ -26,3 +26,16 @@ Impact: Course Create/Edit cannot replace `mockOrganization` and the Release 1 f
 
 Impact: Content Manager has `courses.create` but cannot populate the required Teacher select without mock data. User administration can remain restricted to LMS Admin/Super Admin; the course-form reference endpoint needs compatible read access or a dedicated compact endpoint.
 
+## Enrollment roster does not expose student identity data
+
+- Endpoint: `/api/v1/courses/{courseId}/enrollments/`
+- Method: `GET`
+- Request: authenticated as a Teacher assigned to the course or as LMS Admin
+- Response: each enrollment contains `student` as a numeric user ID only; no name, email, or profile `student_id`
+- Related endpoint: `/api/v1/users/?role=student&is_active=true`
+- Related response: LMS Admin receives name/email but no profile `student_id`; Teacher and Teaching Assistant receive `403 permission_denied`
+- Expected: a compact nested student summary (`id`, `full_name`, `email`, `student_id`) in the enrollment response, or a read-only roster reference endpoint available to `enrollments.view`
+- Affected roles: Teacher, Teaching Assistant, LMS Admin, Super Admin
+- Reproduction: seed Release 1, sign in as Teacher or LMS Admin, request the course enrollments endpoint, then try to resolve the returned student ID through User API
+
+Impact: the frontend can list canonical status, source and enrollment time, but Teacher/TA cannot resolve student names and no supported role can display the required university Student ID. The UI deliberately shows the backend user ID and an unavailable Student ID placeholder instead of mock data.

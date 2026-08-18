@@ -27,13 +27,14 @@ import { queryClient } from "../../api/queryClient";
 import { useAuth } from "../../auth/useAuth";
 import ApiCourseStatusBadge from "../../components/staff/ApiCourseStatusBadge";
 import CourseCopyDialog from "../../components/staff/CourseCopyDialog";
+import CourseEnrollmentsPanel from "../../components/staff/CourseEnrollmentsPanel";
 import StaffToast from "../../components/staff/StaffToast";
 import type { ToastMessage } from "../../components/staff/StaffToast";
 import ConfirmDialog from "../../components/student/ConfirmDialog";
 import StatePanel from "../../components/student/StatePanel";
 import { cn } from "../../utils/cn";
 
-type Tab = "overview" | "readiness" | "settings" | "history";
+type Tab = "overview" | "enrollments" | "readiness" | "settings" | "history";
 
 interface RouteParams { courseId: string; }
 
@@ -138,6 +139,13 @@ export default function StaffCourseDetailPage() {
     if (pendingAction.action === "delete") deleteMutation.mutate();
     else lifecycleMutation.mutate({ action: pendingAction.action });
   };
+  const tabs: Array<[Tab, string]> = [
+    ["overview", "Обзор"],
+    ...(can("enrollments.view") ? [["enrollments", "Студенты"] as [Tab, string]] : []),
+    ["readiness", "Готовность"],
+    ["settings", "Системные данные"],
+    ["history", "История"],
+  ];
 
   return (
     <div className="grid gap-6">
@@ -171,9 +179,11 @@ export default function StaffCourseDetailPage() {
 
       {mutationError ? <div className="rounded-brand border-2 border-red-300 bg-red-50 p-4 text-sm font-bold text-red-800" role="alert">{mutationError.message}</div> : null}
 
-      <nav aria-label="Разделы курса" className="flex gap-2 overflow-x-auto rounded-brand border-2 border-line bg-paper p-2">{([ ["overview", "Обзор"], ["readiness", "Готовность"], ["settings", "Системные данные"], ["history", "История"] ] as Array<[Tab, string]>).map(([value, label]) => <button className={cn("min-h-10 shrink-0 rounded-brand border-2 px-4 text-sm font-black", activeTab === value ? "border-ecto bg-ecto/10 text-ecto-dark" : "border-transparent text-ash hover:bg-mist hover:text-graphite")} key={value} onClick={() => setActiveTab(value)} type="button">{label}</button>)}</nav>
+      <nav aria-label="Разделы курса" className="flex gap-2 overflow-x-auto rounded-brand border-2 border-line bg-paper p-2">{tabs.map(([value, label]) => <button className={cn("min-h-10 shrink-0 rounded-brand border-2 px-4 text-sm font-black", activeTab === value ? "border-ecto bg-ecto/10 text-ecto-dark" : "border-transparent text-ash hover:bg-mist hover:text-graphite")} key={value} onClick={() => setActiveTab(value)} type="button">{label}</button>)}</nav>
 
       {activeTab === "overview" ? <section className="rounded-brand border-2 border-line bg-paper p-5 lg:p-7"><h2 className="text-xl font-black text-navy">Информация о курсе</h2><dl className="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3"><Meta icon={UserRound} label="Преподаватель" value={course.teacher?.full_name ?? "Не назначен"} /><Meta icon={CalendarDays} label="Семестр" value={course.semester.name} /><Meta icon={BookOpen} label="Факультет" value={`${course.faculty.name} (${course.faculty.code ?? "—"})`} /><Meta icon={Layers3} label="Кафедра" value={`${course.department.name} (${course.department.code ?? "—"})`} /><Meta icon={Settings2} label="Программа" value={`${course.program.name} (${course.program.code ?? "—"})`} /><Meta icon={CalendarDays} label="Период" value={`${formatDate(course.start_date)} — ${formatDate(course.end_date)}`} /></dl></section> : null}
+
+      {activeTab === "enrollments" && can("enrollments.view") ? <CourseEnrollmentsPanel courseId={course.id} /> : null}
 
       {activeTab === "readiness" ? <section className="rounded-brand border-2 border-line bg-paper p-5 lg:p-7"><div className="flex items-end justify-between gap-4"><div><h2 className="text-xl font-black text-navy">Готовность курса</h2><p className="mt-1 text-xs text-ash">Проверяется backend перед отправкой на review.</p></div><strong className="text-3xl font-black text-ecto-dark">{readinessQuery.data?.score ?? 0}%</strong></div>{readinessQuery.isError ? <p className="mt-5 text-sm font-bold text-red-700">{readinessQuery.error.message}</p> : <><div className="mt-4 h-3 overflow-hidden rounded-brand bg-mist"><span className="block h-full rounded-brand bg-ecto" style={{ width: `${readinessQuery.data?.score ?? 0}%` }} /></div><div className="mt-5 grid gap-3">{readinessQuery.data?.checks.map((item) => <div className="flex items-start gap-3 text-sm font-bold" key={item.key}><span className={cn("grid size-6 shrink-0 place-items-center rounded-brand border-2", item.status === "complete" ? "border-ecto bg-ecto text-white" : "border-warning text-warning-dark")}>{item.status === "complete" ? <Check aria-hidden="true" size={14} /> : <X aria-hidden="true" size={14} />}</span><div><span className={item.status === "complete" ? "text-graphite" : "text-ash"}>{readinessLabels[item.key] ?? item.key}</span>{item.message ? <p className="mt-1 text-xs font-normal text-ash">{item.message}</p> : null}</div></div>)}</div></>}</section> : null}
 
