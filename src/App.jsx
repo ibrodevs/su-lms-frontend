@@ -19,13 +19,6 @@ const StudentDashboardPage = lazy(() => import("./pages/student/StudentDashboard
 const StudentLessonPage = lazy(() => import("./pages/student/StudentLessonPage"));
 const StudentMaterialPage = lazy(() => import("./pages/student/StudentMaterialPage"));
 const StudentProgressPage = lazy(() => import("./pages/student/StudentProgressPage"));
-const StudentAssignmentsPage = lazy(() => import("./pages/student/StudentAssignmentsPage"));
-const StudentAssignmentDetailPage = lazy(() => import("./pages/student/StudentAssignmentDetailPage"));
-const StudentTestsPage = lazy(() => import("./pages/student/StudentTestsPage"));
-const StudentTestRunPage = lazy(() => import("./pages/student/StudentTestRunPage"));
-const StudentTestResultPage = lazy(() => import("./pages/student/StudentTestResultPage"));
-const StudentSchedulePage = lazy(() => import("./pages/student/StudentSchedulePage"));
-const StudentNotificationsPage = lazy(() => import("./pages/student/StudentNotificationsPage"));
 const StaffDashboardPage = lazy(() => import("./pages/staff/StaffDashboardPage"));
 const StaffCoursesPage = lazy(() => import("./pages/staff/StaffCoursesPage"));
 const CourseFormBlockedPage = lazy(() => import("./pages/staff/CourseFormBlockedPage"));
@@ -96,27 +89,6 @@ export default function App() {
             </Route>
             <Route exact path="/student/calendar">
               <StudentCalendarPage />
-            </Route>
-            <Route exact path="/student/schedule">
-              <StudentSchedulePage />
-            </Route>
-            <Route exact path="/student/assignments">
-              <StudentAssignmentsPage />
-            </Route>
-            <Route exact path="/student/assignments/:assignmentId">
-              <StudentAssignmentDetailPage />
-            </Route>
-            <Route exact path="/student/tests">
-              <StudentTestsPage />
-            </Route>
-            <Route exact path="/student/tests/:testId/result">
-              <StudentTestResultPage />
-            </Route>
-            <Route exact path="/student/tests/:testId">
-              <StudentTestRunPage />
-            </Route>
-            <Route exact path="/student/notifications">
-              <StudentNotificationsPage />
             </Route>
             <Route>
               <NotFoundPage />
