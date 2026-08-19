@@ -1,6 +1,6 @@
 import {
-  Bell,
   BookOpen,
+  CalendarDays,
   ChevronDown,
   FileCheck2,
   Files,
@@ -32,6 +32,7 @@ const pageTitles: Array<[RegExp, string]> = [
   [/^\/courses\/[^/]+\/lessons\/[^/]+\/edit$/, "Редактор урока"],
   [/^\/courses\/[^/]+$/, "Карточка курса"],
   [/^\/courses$/, "Курсы"],
+  [/^\/calendar$/, "Календарь"],
   [/^\/materials$/, "Материалы"],
   [/^\/templates$/, "Шаблоны"],
 ];
@@ -45,7 +46,6 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { can, logout: logoutSession, user } = useAuth();
@@ -65,6 +65,14 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
       },
       { icon: Files, label: "Материалы", to: "/materials", exact: true },
     ];
+    if (can("calendar.view")) {
+      items.push({
+        icon: CalendarDays,
+        label: "Календарь",
+        to: "/calendar",
+        exact: true,
+      });
+    }
     if (can("courses.copy")) {
       items.push({
         icon: LayoutTemplate,
@@ -95,7 +103,6 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
   useEffect(() => {
     setIsMobileOpen(false);
     setIsProfileOpen(false);
-    setIsNotificationOpen(false);
   }, [location.pathname, location.search]);
 
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
@@ -225,29 +232,6 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
               Создать
             </Link>
           ) : null}
-
-          <div className="relative">
-            <button
-              aria-expanded={isNotificationOpen}
-              aria-label="Уведомления"
-              className="grid size-11 place-items-center rounded-brand border-2 border-line text-ash hover:bg-mist hover:text-graphite"
-              onClick={() => {
-                setIsNotificationOpen((current) => !current);
-                setIsProfileOpen(false);
-              }}
-              type="button"
-            >
-              <Bell aria-hidden="true" size={19} />
-            </button>
-            {isNotificationOpen ? (
-              <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-72 rounded-brand border-2 border-line bg-paper p-4">
-                <strong className="block text-sm font-black text-navy">Уведомления</strong>
-                <p className="mt-2 rounded-brand bg-mist p-3 text-xs leading-5 text-ash">
-                  Новых уведомлений по курсам пока нет.
-                </p>
-              </div>
-            ) : null}
-          </div>
 
           <div className="relative">
             <button

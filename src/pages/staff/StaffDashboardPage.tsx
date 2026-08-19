@@ -4,23 +4,18 @@ import {
   CheckCircle2,
   Clock3,
   FileEdit,
-  FileText,
-  Layers3,
   Plus,
+  RotateCcw,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
+import { courseKeys } from "../../api/courseKeys";
+import { coursesApi } from "../../api/courses.api";
+import type { CourseListParams, CourseStatus } from "../../api/courses.api";
+import { getStaffRole } from "../../auth/roles";
 import { useAuth } from "../../auth/useAuth";
-import { useLegacyStaffSession } from "../../auth/useLegacyStaffSession";
-import CourseStatusBadge from "../../components/staff/CourseStatusBadge";
-import { mockStaffUsers } from "../../data/mock/mockUsers";
-import { useMockLoading } from "../../hooks/useMockLoading";
-import {
-  getCourseHistory,
-  getVisibleCourses,
-  subscribeCourseStore,
-} from "../../services/courseService";
-import type { CourseStatus } from "../../types/staff";
+import ApiCourseStatusBadge from "../../components/staff/ApiCourseStatusBadge";
+import StatePanel from "../../components/student/StatePanel";
 
 const dateFormatter = new Intl.DateTimeFormat("ru-RU", {
   day: "2-digit",
@@ -28,65 +23,86 @@ const dateFormatter = new Intl.DateTimeFormat("ru-RU", {
   year: "numeric",
 });
 
+const statuses: CourseStatus[] = [
+  "draft",
+  "under_review",
+  "needs_revision",
+  "published",
+  "archived",
+];
+
+const statusStats = [
+  { color: "text-ash bg-mist", icon: FileEdit, label: "Черновики", status: "draft" },
+  { color: "text-warning-dark bg-warning/10", icon: Clock3, label: "На проверке", status: "under_review" },
+  { color: "text-orange-800 bg-orange-50", icon: RotateCcw, label: "На доработке", status: "needs_revision" },
+  { color: "text-ecto-dark bg-ecto/10", icon: CheckCircle2, label: "Опубликовано", status: "published" },
+  { color: "text-navy bg-navy/5", icon: Archive, label: "В архиве", status: "archived" },
+] satisfies Array<{
+  color: string;
+  icon: typeof FileEdit;
+  label: string;
+  status: CourseStatus;
+}>;
+
+const recentParams: CourseListParams = { ordering: "-updated_at", pageSize: 4 };
+
+function getCount(
+  status: CourseStatus,
+  queries: Array<{ data?: { count: number } }>,
+): number {
+  return queries[statuses.indexOf(status)]?.data?.count ?? 0;
+}
+
 export default function StaffDashboardPage() {
-  const session = useLegacyStaffSession();
   const { can, user } = useAuth();
-  const [revision, setRevision] = useState(0);
-  const isLoading = useMockLoading();
+  const role = getStaffRole(user?.roles ?? []);
+  const isTeacher = role === "teacher";
+  const statusQueries = useQueries({
+    queries: statuses.map((status) => {
+      const params: CourseListParams = { pageSize: 1, status };
+      return {
+        queryFn: () => coursesApi.list(params),
+        queryKey: courseKeys.list(params),
+      };
+    }),
+  });
+  const recentCoursesQuery = useQuery({
+    queryFn: () => coursesApi.list(recentParams),
+    queryKey: courseKeys.list(recentParams),
+  });
+  const isPending = recentCoursesQuery.isPending || statusQueries.some((query) => query.isPending);
+  const failedQuery = statusQueries.find((query) => query.isError);
+  const error = recentCoursesQuery.error ?? failedQuery?.error;
+  const totalCourses = statusQueries.reduce((total, query) => total + (query.data?.count ?? 0), 0);
+  const activeCourses = totalCourses - getCount("archived", statusQueries);
 
-  useEffect(() => subscribeCourseStore(() => setRevision((value) => value + 1)), []);
+  if (isPending) {
+    return <DashboardSkeleton />;
+  }
 
-  const sessionRole = session?.role;
-  const sessionUserId = session?.userId;
-  const courses = useMemo(() => {
-    void revision;
-    return sessionRole && sessionUserId
-      ? getVisibleCourses(sessionRole, sessionUserId)
-      : [];
-  }, [revision, sessionRole, sessionUserId]);
-  const recentCourses = useMemo(
-    () => [...courses].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 4),
-    [courses],
-  );
-  const recentHistory = useMemo(
-    () =>
-      recentCourses
-        .flatMap((course) => getCourseHistory(course.id))
-        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-        .slice(0, 6),
-    [recentCourses],
-  );
-
-  const countStatus = (status: CourseStatus) =>
-    courses.filter((course) => course.status === status).length;
-  const isTeacher = session?.role === "teacher";
-  const stats = isTeacher
-    ? [
-        { label: "Активные курсы", value: courses.filter((course) => course.status !== "archived").length, icon: BookOpen, color: "text-macaw-dark bg-macaw/10" },
-        { label: "Черновики", value: countStatus("draft"), icon: FileEdit, color: "text-ash bg-mist" },
-        { label: "На проверке", value: countStatus("under-review"), icon: Clock3, color: "text-warning-dark bg-warning/10" },
-        { label: "Опубликовано", value: countStatus("published"), icon: CheckCircle2, color: "text-ecto-dark bg-ecto/10" },
-        { label: "Уроков", value: courses.reduce((sum, course) => sum + course.lessonCount, 0), icon: Layers3, color: "text-navy bg-navy/5" },
-        { label: "Материалов", value: courses.reduce((sum, course) => sum + course.materialCount, 0), icon: FileText, color: "text-macaw-dark bg-macaw/10" },
-      ]
-    : [
-        { label: "Всего курсов", value: courses.length, icon: BookOpen, color: "text-macaw-dark bg-macaw/10" },
-        { label: "Черновики", value: countStatus("draft"), icon: FileEdit, color: "text-ash bg-mist" },
-        { label: "На проверке", value: countStatus("under-review"), icon: Clock3, color: "text-warning-dark bg-warning/10" },
-        { label: "Опубликовано", value: countStatus("published"), icon: CheckCircle2, color: "text-ecto-dark bg-ecto/10" },
-        { label: "В архиве", value: countStatus("archived"), icon: Archive, color: "text-navy bg-navy/5" },
-      ];
-
-  if (isLoading) {
+  if (error) {
     return (
-      <div aria-label="Загрузка рабочего стола" className="grid gap-5">
-        <div className="h-40 animate-pulse rounded-brand bg-mist" />
-        <div className="grid gap-4 md:grid-cols-3">
-          {[1, 2, 3].map((item) => <div className="h-28 animate-pulse rounded-brand bg-mist" key={item} />)}
-        </div>
-      </div>
+      <StatePanel
+        action={(
+          <button
+            className="mt-2 text-sm font-black text-macaw-dark hover:underline"
+            onClick={() => {
+              void recentCoursesQuery.refetch();
+              statusQueries.forEach((query) => void query.refetch());
+            }}
+            type="button"
+          >
+            Повторить запрос
+          </button>
+        )}
+        description={error.message}
+        kind="error"
+        title="Не удалось загрузить рабочий стол"
+      />
     );
   }
+
+  const recentCourses = recentCoursesQuery.data?.results ?? [];
 
   return (
     <div className="grid gap-6">
@@ -116,31 +132,38 @@ export default function StaffDashboardPage() {
       </section>
 
       <section aria-label="Статистика курсов" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-        {stats.map(({ color, icon: Icon, label, value }) => (
-          <article className="rounded-brand border-2 border-line bg-paper p-4" key={label}>
-            <span className={`grid size-10 place-items-center rounded-brand ${color}`}>
-              <Icon aria-hidden="true" size={20} />
-            </span>
-            <strong className="mt-4 block text-3xl font-black text-navy">{value}</strong>
-            <span className="mt-1 block text-xs font-bold text-ash">{label}</span>
-          </article>
+        <DashboardStat
+          color="text-macaw-dark bg-macaw/10"
+          icon={BookOpen}
+          label={isTeacher ? "Активные курсы" : "Всего курсов"}
+          value={isTeacher ? activeCourses : totalCourses}
+        />
+        {statusStats.map((stat) => (
+          <DashboardStat
+            color={stat.color}
+            icon={stat.icon}
+            key={stat.status}
+            label={stat.label}
+            value={getCount(stat.status, statusQueries)}
+          />
         ))}
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[1.45fr_0.75fr]">
-        <section className="rounded-brand border-2 border-line bg-paper p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-xl font-black text-navy">
-                {isTeacher ? "Мои курсы" : "Последние курсы"}
-              </h2>
-              <p className="mt-1 text-xs text-ash">Недавно изменённые учебные курсы</p>
-            </div>
-            <Link className="text-sm font-black text-macaw-dark hover:underline" to="/courses">
-              Все курсы
-            </Link>
+      <section className="rounded-brand border-2 border-line bg-paper p-5">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-black text-navy">
+              {isTeacher ? "Мои курсы" : "Последние курсы"}
+            </h2>
+            <p className="mt-1 text-xs text-ash">Недавно изменённые курсы из backend</p>
           </div>
-          <div className="mt-5 grid gap-3">
+          <Link className="text-sm font-black text-macaw-dark hover:underline" to="/courses">
+            Все курсы
+          </Link>
+        </div>
+
+        {recentCourses.length ? (
+          <div className="mt-5 grid gap-3 lg:grid-cols-2">
             {recentCourses.map((course) => (
               <Link
                 className="grid gap-3 rounded-brand border-2 border-line p-4 transition-colors hover:border-lingot hover:bg-eel/10 sm:grid-cols-[1fr_auto] sm:items-center"
@@ -148,35 +171,60 @@ export default function StaffDashboardPage() {
                 to={`/courses/${course.id}`}
               >
                 <div className="min-w-0">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-macaw-dark">{course.code}</span>
-                  <strong className="mt-1 block truncate text-sm font-black text-graphite">{course.title}</strong>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-macaw-dark">
+                    {course.code}
+                  </span>
+                  <strong className="mt-1 block truncate text-sm font-black text-graphite">
+                    {course.title}
+                  </strong>
                   <span className="mt-2 block text-xs text-ash">
-                    {course.moduleCount} модулей · {course.lessonCount} уроков · обновлён {dateFormatter.format(new Date(course.updatedAt))}
+                    {course.teacher?.full_name ?? "Преподаватель не назначен"} · обновлён {dateFormatter.format(new Date(course.updated_at))}
                   </span>
                 </div>
-                <CourseStatusBadge status={course.status} />
+                <ApiCourseStatusBadge status={course.status} />
               </Link>
             ))}
           </div>
-        </section>
-
-        <section className="rounded-brand border-2 border-line bg-paper p-5">
-          <h2 className="text-xl font-black text-navy">Последняя активность</h2>
-          <p className="mt-1 text-xs text-ash">История изменений курсов</p>
-          <div className="mt-5 grid gap-4">
-            {recentHistory.map((event) => {
-              const actor = mockStaffUsers.find((candidate) => candidate.id === event.userId);
-              return (
-                <div className="border-l-2 border-lingot pl-3" key={event.id}>
-                  <strong className="block text-xs font-black text-graphite">{event.action}</strong>
-                  <span className="mt-1 block text-[11px] leading-5 text-ash">
-                    {actor ? `${actor.firstName} ${actor.lastName}` : "Пользователь"} · {dateFormatter.format(new Date(event.createdAt))}
-                  </span>
-                </div>
-              );
-            })}
+        ) : (
+          <div className="mt-5">
+            <StatePanel
+              description="Backend не вернул курсы, доступные вашей роли."
+              title="Курсов пока нет"
+            />
           </div>
-        </section>
+        )}
+      </section>
+    </div>
+  );
+}
+
+interface DashboardStatProps {
+  color: string;
+  icon: typeof BookOpen;
+  label: string;
+  value: number;
+}
+
+function DashboardStat({ color, icon: Icon, label, value }: DashboardStatProps) {
+  return (
+    <article className="rounded-brand border-2 border-line bg-paper p-4">
+      <span className={`grid size-10 place-items-center rounded-brand ${color}`}>
+        <Icon aria-hidden="true" size={20} />
+      </span>
+      <strong className="mt-4 block text-3xl font-black text-navy">{value}</strong>
+      <span className="mt-1 block text-xs font-bold text-ash">{label}</span>
+    </article>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div aria-label="Загрузка рабочего стола" className="grid gap-5">
+      <div className="h-40 animate-pulse rounded-brand bg-mist" />
+      <div className="grid gap-4 md:grid-cols-3">
+        {[1, 2, 3].map((item) => (
+          <div className="h-28 animate-pulse rounded-brand bg-mist" key={item} />
+        ))}
       </div>
     </div>
   );

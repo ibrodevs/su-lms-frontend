@@ -26,6 +26,7 @@ const StaffCourseDetailPage = lazy(() => import("./pages/staff/StaffCourseDetail
 const CourseBuilderPage = lazy(() => import("./pages/staff/CourseBuilderPage"));
 const LessonEditorPage = lazy(() => import("./pages/staff/LessonEditorPage"));
 const StaffMaterialsPage = lazy(() => import("./pages/staff/StaffMaterialsPage"));
+const StaffCalendarPage = lazy(() => import("./pages/staff/StaffCalendarPage"));
 const CoursePreviewPage = lazy(() => import("./pages/staff/CoursePreviewPage"));
 const StaffTemplatesPage = lazy(() => import("./pages/staff/StaffTemplatesPage"));
 const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
@@ -102,7 +103,7 @@ export default function App() {
           <CoursePreviewPage />
         </ProtectedRoute>
       </Route>
-      <Route path={["/teacher", "/content", "/admin", "/courses", "/materials", "/templates"]}>
+      <Route path={["/teacher", "/content", "/admin", "/courses", "/materials", "/templates", "/calendar"]}>
         <ProtectedRoute allowedRoles={STAFF_ROLES}>
           <StaffLayout>
             <Switch>
@@ -134,6 +135,9 @@ export default function App() {
             </Route>
             <Route exact path="/materials">
               <StaffMaterialsPage />
+            </Route>
+            <Route exact path="/calendar">
+              <StaffCalendarPage />
             </Route>
             <Route exact path="/templates">
               <StaffTemplatesPage />
