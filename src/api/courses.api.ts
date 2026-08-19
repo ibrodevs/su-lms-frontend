@@ -1,4 +1,4 @@
-import { apiClient } from "./client";
+import { apiClient, apiRequest } from "./client";
 import type { PaginatedResponse } from "./types";
 
 export type CourseStatus =
@@ -75,6 +75,49 @@ export interface CourseCopyPayload {
   code: string;
 }
 
+export interface CourseWritePayload {
+  title: string;
+  code: string;
+  description: string;
+  language: CourseLanguage;
+  credits: number;
+  semester: number;
+  faculty: number;
+  department: number;
+  program: number;
+  teacher?: number;
+  start_date: string;
+  end_date: string;
+  cover?: File;
+  syllabus?: File;
+}
+
+export interface CourseMutationDto {
+  id: number;
+}
+
+export function buildCourseWriteFormData(payload: CourseWritePayload): FormData {
+  const formData = new FormData();
+  const scalarFields: Array<[string, string | number]> = [
+    ["title", payload.title],
+    ["code", payload.code],
+    ["description", payload.description],
+    ["language", payload.language],
+    ["credits", payload.credits],
+    ["semester", payload.semester],
+    ["faculty", payload.faculty],
+    ["department", payload.department],
+    ["program", payload.program],
+    ["start_date", payload.start_date],
+    ["end_date", payload.end_date],
+  ];
+  if (payload.teacher !== undefined) scalarFields.push(["teacher", payload.teacher]);
+  scalarFields.forEach(([key, value]) => formData.append(key, String(value)));
+  if (payload.cover) formData.append("cover", payload.cover);
+  if (payload.syllabus) formData.append("syllabus", payload.syllabus);
+  return formData;
+}
+
 export interface CourseListParams {
   page?: number;
   pageSize?: number;
@@ -119,6 +162,20 @@ export const coursesApi = {
 
   detail(courseId: number): Promise<CourseDetailDto> {
     return apiClient.get<CourseDetailDto>(`/courses/${courseId}/`);
+  },
+
+  create(payload: CourseWritePayload): Promise<CourseMutationDto> {
+    return apiRequest<CourseMutationDto>("/courses/", {
+      method: "POST",
+      body: buildCourseWriteFormData(payload),
+    });
+  },
+
+  update(courseId: number, payload: CourseWritePayload): Promise<CourseMutationDto> {
+    return apiRequest<CourseMutationDto>(`/courses/${courseId}/`, {
+      method: "PATCH",
+      body: buildCourseWriteFormData(payload),
+    });
   },
 
   remove(courseId: number): Promise<void> {
