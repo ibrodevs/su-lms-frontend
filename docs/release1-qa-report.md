@@ -3,7 +3,7 @@
 Date: 2026-08-19  
 Frontend branch: `feature/SULMS-release1-frontend-integration`  
 Backend repository: `adilhanDevs/su-lms-backend`  
-Backend branch: `develop` plus `fix/SULMS-media-volume-permissions`
+Backend branch: clean `develop` at merge commit `71fced6`
 API base: `/api/v1/`
 
 ## Environment
@@ -22,6 +22,9 @@ API base: `/api/v1/`
 - `npm test` — 78 tests passed
 - `npm run test:e2e` — 10 Playwright scenarios passed
 - `npm run build` — passed
+- Lifecycle screenshot run — passed independently with 9 final screenshots
+- Backend test workflow — 514 tests passed
+- Backend Pylint workflow — 10.00/10
 
 Playwright coverage:
 
@@ -31,7 +34,8 @@ Playwright coverage:
 - Staff Dashboard and Courses using backend-scoped data.
 - Staff Calendar Create → refresh → PATCH → DELETE against PostgreSQL-backed API.
 - Teacher Course Create → refresh → Edit using backend organization references and PostgreSQL persistence.
-- Full Teacher Create → structure → PDF material → review → revision → resubmit → Admin publish → enrollment → Student lesson completion lifecycle.
+- Full Teacher Create → Builder → Module → Topic → Lesson → PDF Material → Submit Review → Content Manager Return → Teacher Resubmit → LMS Admin Publish → Enrollment → Calendar → Student Course → Lesson → Complete → Progress lifecycle.
+- Enrollment verification waits for the refreshed table and asserts the student record, not only the success notification.
 - Lifecycle test removes its course, uploaded files, enrollment and progress records after every run.
 - Release 2/3 navigation is absent from the Student runtime.
 - No requests to mock JSON/modules during tested flows.
@@ -48,7 +52,21 @@ Playwright coverage:
 
 ## Screenshots
 
-Current backend-connected screenshots are stored in `docs/screenshots/release1-e2e/`:
+General backend-connected screenshots are stored in `docs/screenshots/release1-e2e/`.
+
+The final continuous lifecycle evidence is stored in `docs/screenshots/release1-lifecycle/`:
+
+- Teacher Builder with the lesson and uploaded PDF material
+- Teacher Submit Review
+- Content Manager Return with the revision comment
+- Teacher Resubmit
+- LMS Admin Publish and visible active enrollment
+- LMS Admin public Calendar event
+- Student Calendar with the enrolled course event
+- Student completed lesson
+- Student course progress at 100%
+
+The general screenshot set also covers:
 
 - Student Dashboard, Courses, Course Detail and Calendar
 - Teacher Dashboard and Courses
@@ -62,6 +80,7 @@ Current backend-connected screenshots are stored in `docs/screenshots/release1-e
 ### Organization reference API — resolved
 
 - Backend commit: `241bf86 feat: add organization reference api`
+- Backend PR: `adilhanDevs/su-lms-backend#7` — merged into `develop`
 - `GET /api/v1/organization/faculties/` — active faculties
 - `GET /api/v1/organization/departments/?faculty={id}` — active filtered departments
 - `GET /api/v1/organization/programs/?department={id}` — active filtered programs
@@ -79,10 +98,24 @@ Verified E2E coverage:
 
 ### Docker media storage — resolved
 
+- Backend PR: `adilhanDevs/su-lms-backend#8` — merged into `develop`
 - The backend image prepares `/app/media` and `/app/private_media` for the non-root `app` account.
 - The container entrypoint repairs named-volume ownership before starting Django and then drops privileges to `app`.
 - Image build, container recreation, health check and real syllabus/material PDF uploads passed.
 - PostgreSQL data remained available after Docker Desktop and backend container restarts.
+
+### Windows checkout line endings — resolved
+
+- Backend PR: `adilhanDevs/su-lms-backend#9` — merged into `develop`
+- `.gitattributes` enforces LF for shell scripts.
+- A regression test rejects CRLF in `docker-entrypoint.sh`.
+- A fresh Windows checkout built successfully, and the container started under the non-root `app` account.
+
+### Restart persistence — verified
+
+- A temporary Teacher Draft was created through the real API on clean `develop`.
+- The backend container was restarted and returned to `healthy`.
+- The draft was found with the same ID, code and status after restart, then removed through the authenticated API with `204`.
 
 ### Locked lesson fixture
 
@@ -90,4 +123,4 @@ The current seeded student account returns four courses and 40 lessons, all with
 
 ## Handoff
 
-Organization integration, Course Create/Edit and the complete four-role Release 1 lifecycle are ready. Existing read flows, progress flows, staff calendar CRUD, file uploads, course form persistence and responsive layouts are verified.
+Organization integration, Course Create/Edit and the complete four-role Release 1 lifecycle are ready on the merged backend `develop`. Existing read flows, progress flows, staff calendar CRUD, file uploads, course form persistence, restart persistence and responsive layouts are verified.

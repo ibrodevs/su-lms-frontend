@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
+import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { promisify } from "node:util";
 import { expect, test } from "@playwright/test";
@@ -8,6 +9,8 @@ import { collectRuntimeFailures, demoAccounts, loginAs } from "./helpers/auth";
 
 const execFileAsync = promisify(execFile);
 const backendDirectory = process.env.E2E_BACKEND_DIR ?? resolve(process.cwd(), "..", "su-lms-backend");
+const captureScreenshots = process.env.E2E_CAPTURE_SCREENSHOTS === "1";
+const screenshotDirectory = resolve(process.cwd(), "docs", "screenshots", "release1-lifecycle");
 const studentEmail = "student@su.edu.kg";
 
 interface RuntimeFailures {
@@ -20,6 +23,12 @@ interface RolePage {
   context: BrowserContext;
   failures: RuntimeFailures;
   page: Page;
+}
+
+async function capture(page: Page, filename: string): Promise<void> {
+  if (!captureScreenshots) return;
+  await mkdir(screenshotDirectory, { recursive: true });
+  await page.screenshot({ fullPage: true, path: resolve(screenshotDirectory, filename) });
 }
 
 async function cleanupLifecycleCourse(courseCode: string): Promise<void> {
@@ -84,6 +93,7 @@ test("Release 1 lifecycle works from teacher creation to student completion", as
   const lessonTitle = `Первый урок ${uniquePart}`;
   const materialTitle = `Памятка ${uniquePart}`;
   const revisionComment = `Добавить практический вывод ${uniquePart}`;
+  const eventTitle = `Практическая встреча ${uniquePart}`;
   const rolePages: RolePage[] = [];
   let teacherPage: Page | null = null;
   let courseId: number | null = null;
@@ -157,6 +167,7 @@ test("Release 1 lifecycle works from teacher creation to student completion", as
     await dialog.getByRole("button", { name: "Сохранить" }).click();
     await expect(dialog).toBeHidden();
     await expect(teacherPage.getByRole("heading", { name: materialTitle })).toBeVisible();
+    await capture(teacherPage, "01-teacher-builder.png");
 
     await teacherPage.goto(`/#/courses/${courseId}`);
     const submitButton = teacherPage.getByRole("button", { name: "На проверку" });
@@ -165,6 +176,7 @@ test("Release 1 lifecycle works from teacher creation to student completion", as
     dialog = teacherPage.getByRole("dialog", { name: "Отправить курс на проверку?" });
     await dialog.getByRole("button", { name: "Отправить" }).click();
     await expect(teacherPage.getByText("На проверке", { exact: true })).toBeVisible();
+    await capture(teacherPage, "02-teacher-submitted-review.png");
 
     const contentPage = await createRolePage("content");
     await contentPage.goto(`/#/courses/${courseId}`);
@@ -174,6 +186,7 @@ test("Release 1 lifecycle works from teacher creation to student completion", as
     await dialog.getByLabel("Причина возврата").fill(revisionComment);
     await dialog.getByRole("button", { name: "Вернуть", exact: true }).click();
     await expect(contentPage.getByText("Нужна доработка", { exact: true })).toBeVisible();
+    await capture(contentPage, "03-content-manager-returned.png");
 
     await teacherPage.reload();
     await expect(teacherPage.getByText("Нужна доработка", { exact: true })).toBeVisible();
@@ -188,6 +201,7 @@ test("Release 1 lifecycle works from teacher creation to student completion", as
     dialog = teacherPage.getByRole("dialog", { name: "Отправить курс на проверку?" });
     await dialog.getByRole("button", { name: "Отправить" }).click();
     await expect(teacherPage.getByText("На проверке", { exact: true })).toBeVisible();
+    await capture(teacherPage, "04-teacher-resubmitted.png");
 
     const adminPage = await createRolePage("admin");
     await adminPage.goto(`/#/courses/${courseId}`);
@@ -204,8 +218,29 @@ test("Release 1 lifecycle works from teacher creation to student completion", as
     await dialog.getByText(studentEmail, { exact: false }).click();
     await dialog.getByRole("button", { name: "Добавить", exact: true }).click();
     await expect(adminPage.getByRole("status").filter({ hasText: "Студент добавлен" })).toBeVisible();
+    await expect(adminPage.getByText("Всего записей: 1", { exact: true })).toBeVisible();
+    await expect(adminPage.getByRole("cell", { name: studentEmail })).toBeVisible();
+    await capture(adminPage, "05-admin-published-enrollment.png");
+
+    const startsAt = new Date(Date.now() + 24 * 60 * 60 * 1_000);
+    const localStartsAt = new Date(startsAt.getTime() - startsAt.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+    await adminPage.goto("/#/calendar");
+    await adminPage.getByRole("button", { name: "Добавить событие" }).click();
+    dialog = adminPage.getByRole("dialog", { name: "Новое событие" });
+    await dialog.getByLabel("Курс").selectOption({ label: `${courseCode} · ${courseTitle}` });
+    await dialog.getByLabel("Название").fill(eventTitle);
+    await dialog.getByLabel("Начало").fill(localStartsAt);
+    await dialog.getByLabel("Описание").fill("Публичное событие опубликованного курса для enrolled student.");
+    await dialog.getByRole("button", { name: "Сохранить" }).click();
+    await expect(adminPage.getByRole("heading", { name: eventTitle, exact: true })).toBeVisible();
+    await capture(adminPage, "06-admin-calendar.png");
 
     const studentPage = await createRolePage("student");
+    await studentPage.goto("/#/student/calendar");
+    await expect(studentPage.getByRole("heading", { name: "Календарь", exact: true })).toBeVisible();
+    await expect(studentPage.getByText(eventTitle, { exact: true }).first()).toBeVisible();
+    await capture(studentPage, "07-student-calendar.png");
+
     await studentPage.goto(`/#/student/courses/${courseId}`);
     await expect(studentPage.getByRole("heading", { name: courseTitle })).toBeVisible();
     await expect(studentPage.getByText("Завершено 0 из 1 доступных уроков.")).toBeVisible();
@@ -217,9 +252,11 @@ test("Release 1 lifecycle works from teacher creation to student completion", as
     dialog = studentPage.getByRole("dialog", { name: "Завершить урок?" });
     await dialog.getByRole("button", { name: "Завершить", exact: true }).click();
     await expect(studentPage.getByRole("status").filter({ hasText: "Урок завершён" })).toBeVisible();
+    await capture(studentPage, "08-student-lesson-completed.png");
     await studentPage.goto(`/#/student/courses/${courseId}`);
     await expect(studentPage.getByText("Завершено 1 из 1 доступных уроков.")).toBeVisible();
     await expect(studentPage.getByText("Курс завершён")).toBeVisible();
+    await capture(studentPage, "09-student-progress.png");
 
     await assertNoRuntimeFailures(rolePages);
   } finally {
