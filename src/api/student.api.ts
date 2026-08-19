@@ -1,5 +1,6 @@
 import { apiClient } from "./client";
 import type { CourseLanguage, CourseReferenceDto, CourseTeacherDto } from "./courses.api";
+import type { LearningMaterialType, LessonType, ReleaseType } from "./learning.api";
 import type { PaginatedResponse } from "./types";
 
 export interface StudentCourseDto {
@@ -26,6 +27,75 @@ export interface StudentCourseProgressDto {
   total_lessons: number;
   completed_lessons: number;
   progress_percent: number;
+}
+
+export type StudentLessonProgressStatus = "not_started" | "in_progress" | "completed";
+
+export interface StudentMaterialDto {
+  id: number;
+  title: string;
+  description: string;
+  type: LearningMaterialType;
+  external_url: string;
+  original_filename: string;
+  mime_type: string;
+  size: number | null;
+  extension: string;
+  download_allowed: boolean;
+  download_url: string | null;
+  video_status: "" | "uploaded" | "processing" | "ready" | "failed";
+  duration_seconds: number | null;
+  playback_url: string | null;
+}
+
+export interface StudentLessonDto {
+  id: number;
+  title: string;
+  description: string;
+  lesson_type: LessonType;
+  content: string | null;
+  estimated_duration_minutes: number | null;
+  order: number;
+  release_type: ReleaseType;
+  release_at: string | null;
+  required_lesson: number | null;
+  status: StudentLessonProgressStatus;
+  is_available: boolean;
+  lock_reason: string | null;
+  materials: StudentMaterialDto[];
+}
+
+export interface StudentTopicDto {
+  id: number;
+  title: string;
+  description: string;
+  order: number;
+  lessons: StudentLessonDto[];
+}
+
+export interface StudentModuleDto {
+  id: number;
+  title: string;
+  description: string;
+  order: number;
+  release_type: Exclude<ReleaseType, "after_lesson">;
+  release_at: string | null;
+  topics: StudentTopicDto[];
+}
+
+export interface StudentCourseDetailDto extends StudentCourseDto {
+  overall_progress: number;
+  structure: StudentModuleDto[];
+}
+
+export interface LessonProgressDto {
+  id: number;
+  course_id: number;
+  lesson_id: number;
+  status: StudentLessonProgressStatus;
+  started_at: string | null;
+  completed_at: string | null;
+  updated_at: string;
 }
 
 export interface StudentProgressDto {
@@ -91,7 +161,31 @@ export const studentApi = {
     return apiClient.get<PaginatedResponse<StudentCourseDto>>(buildStudentCourseListPath(params));
   },
 
+  course(courseId: number): Promise<StudentCourseDetailDto> {
+    return apiClient.get<StudentCourseDetailDto>(`/student/courses/${courseId}/`);
+  },
+
+  lesson(lessonId: number): Promise<StudentLessonDto> {
+    return apiClient.get<StudentLessonDto>(`/student/lessons/${lessonId}/`);
+  },
+
+  startLesson(lessonId: number): Promise<LessonProgressDto> {
+    return apiClient.post<LessonProgressDto>(`/student/lessons/${lessonId}/start/`);
+  },
+
+  completeLesson(lessonId: number): Promise<LessonProgressDto> {
+    return apiClient.post<LessonProgressDto>(`/student/lessons/${lessonId}/complete/`);
+  },
+
   progress(): Promise<StudentProgressDto> {
     return apiClient.get<StudentProgressDto>("/student/progress/");
+  },
+
+  courseProgress(courseId: number): Promise<StudentCourseProgressDto> {
+    return apiClient.get<StudentCourseProgressDto>(`/student/courses/${courseId}/progress/`);
+  },
+
+  downloadMaterial(materialId: number): Promise<Blob> {
+    return apiClient.download(`/materials/${materialId}/download/`);
   },
 };
