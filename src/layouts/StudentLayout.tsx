@@ -1,10 +1,6 @@
 import {
   BookOpen,
-  Bell,
   CalendarDays,
-  CalendarClock,
-  CheckSquare,
-  ClipboardList,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -17,22 +13,20 @@ import {
   UserRound,
   X,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, NavLink, useHistory, useLocation } from "react-router-dom";
+import { studentApi } from "../api/student.api";
+import type { StudentCourseDto, StudentCourseListParams } from "../api/student.api";
+import { studentKeys } from "../api/studentKeys";
+import { useAuth } from "../auth/useAuth";
 import ConfirmDialog from "../components/student/ConfirmDialog";
-import { mockStudent } from "../data/student/mockStudent";
-import { mockNotifications } from "../data/student/mockNotifications";
-import { mockCourses } from "../data/student/mockCourses";
-import {
-  getSidebarCollapsed,
-  getStudentLocalState,
-  markNotificationRead,
-  setAuthenticated,
-  setSidebarCollapsed,
-  subscribeStudentStorage,
-} from "../services/studentStorage";
+import { getSidebarCollapsed, setSidebarCollapsed } from "../services/uiPreferences";
 import { cn } from "../utils/cn";
+
+const courseListParams: StudentCourseListParams = { pageSize: 100 };
+const emptyCourses: readonly StudentCourseDto[] = [];
 
 const navigation = [
   { exact: true, icon: Home, label: "Главная", to: "/student" },
@@ -54,30 +48,6 @@ const navigation = [
     label: "Календарь",
     to: "/student/calendar",
   },
-  {
-    exact: false,
-    icon: CalendarClock,
-    label: "Расписание",
-    to: "/student/schedule",
-  },
-  {
-    exact: false,
-    icon: ClipboardList,
-    label: "Задания",
-    to: "/student/assignments",
-  },
-  {
-    exact: false,
-    icon: CheckSquare,
-    label: "Тесты",
-    to: "/student/tests",
-  },
-  {
-    exact: false,
-    icon: Bell,
-    label: "Уведомления",
-    to: "/student/notifications",
-  },
   { exact: false, icon: UserRound, label: "Профиль", to: "/profile" },
 ];
 
@@ -93,10 +63,6 @@ function getPageTitle(pathname: string): string {
   if (pathname === "/student/courses") return "Мои курсы";
   if (pathname === "/student/progress") return "Прогресс";
   if (pathname === "/student/calendar") return "Календарь";
-  if (pathname === "/student/schedule") return "Расписание";
-  if (pathname.startsWith("/student/assignments")) return "Задания";
-  if (pathname.startsWith("/student/tests")) return "Тесты";
-  if (pathname === "/student/notifications") return "Уведомления";
   return "Главная";
 }
 
@@ -112,33 +78,24 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
   const [isCollapsed, setIsCollapsed] = useState(getInitialCollapsedState);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const location = useLocation();
   const history = useHistory();
+  const { logout: logoutSession, user } = useAuth();
   const pageTitle = useMemo(
     () => getPageTitle(location.pathname),
     [location.pathname],
   );
-  const initials = `${mockStudent.firstName[0]}${mockStudent.lastName[0]}`;
-  const [storageRevision, setStorageRevision] = useState(0);
-  useEffect(
-    () => subscribeStudentStorage(() => setStorageRevision((value) => value + 1)),
-    [],
-  );
-  const localState = useMemo(getStudentLocalState, [storageRevision]);
-  const unreadNotifications = mockNotifications.filter(
-    (notification) =>
-      !notification.read &&
-      !localState.readNotifications.includes(notification.id),
-  ).length;
-  const recentNotifications = mockNotifications
-    .filter(
-      (notification) =>
-        !localState.deletedNotifications.includes(notification.id),
-    )
-    .slice(0, 4);
+  const initials = user
+    ? `${user.first_name.charAt(0)}${user.last_name.charAt(0)}` || "SU"
+    : "SU";
+  const coursesQuery = useQuery({
+    enabled: searchQuery.trim().length > 0,
+    queryKey: studentKeys.courses(courseListParams),
+    queryFn: () => studentApi.courses(courseListParams),
+  });
+  const searchableCourses = coursesQuery.data?.results ?? emptyCourses;
   const searchResults = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
     if (!normalizedQuery) return [];
@@ -146,7 +103,7 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
     const navigationResults = navigation
       .filter((item) => item.label.toLowerCase().includes(normalizedQuery))
       .map((item) => ({ label: item.label, meta: "Раздел", to: item.to }));
-    const courseResults = mockCourses
+    const courseResults = searchableCourses
       .filter((course) =>
         `${course.title} ${course.code}`.toLowerCase().includes(normalizedQuery),
       )
@@ -157,13 +114,12 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
       }));
 
     return [...navigationResults, ...courseResults].slice(0, 6);
-  }, [searchQuery]);
+  }, [searchQuery, searchableCourses]);
   const openLogout = useCallback(() => setIsLogoutOpen(true), []);
   const closeLogout = useCallback(() => setIsLogoutOpen(false), []);
 
   useEffect(() => {
     setIsMobileOpen(false);
-    setIsNotificationOpen(false);
     setIsProfileOpen(false);
     setSearchQuery("");
   }, [location.pathname]);
@@ -172,11 +128,14 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
     setSidebarCollapsed(isCollapsed);
   }, [isCollapsed]);
 
-  const logout = useCallback(() => {
-    setIsLogoutOpen(false);
-    setAuthenticated(false);
-    history.push("/login");
-  }, [history]);
+  const logout = useCallback(async () => {
+    try {
+      await logoutSession();
+    } finally {
+      setIsLogoutOpen(false);
+      history.replace("/login");
+    }
+  }, [history, logoutSession]);
 
   return (
     <div className="student-theme">
@@ -340,6 +299,10 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
                       </small>
                     </Link>
                   ))
+                ) : coursesQuery.isFetching ? (
+                  <span className="px-3 py-2 text-sm font-bold text-ash">
+                    Ищем курсы…
+                  </span>
                 ) : (
                   <span className="px-3 py-2 text-sm font-bold text-ash">
                     Ничего не найдено
@@ -352,61 +315,9 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
           <div className="flex items-center gap-2">
             <div className="relative">
               <button
-                aria-expanded={isNotificationOpen}
-                aria-label="Уведомления"
-                className="relative grid size-11 place-items-center rounded-brand border-2 border-line text-ash hover:bg-mist hover:text-graphite"
-                onClick={() => {
-                  setIsNotificationOpen((value) => !value);
-                  setIsProfileOpen(false);
-                }}
-                type="button"
-              >
-                <Bell aria-hidden="true" size={19} />
-                {unreadNotifications > 0 && (
-                  <span className="absolute right-1 top-1 grid min-w-4 place-items-center rounded-full bg-danger px-1 text-[9px] font-black leading-4 text-white">
-                    {unreadNotifications}
-                  </span>
-                )}
-              </button>
-              {isNotificationOpen && (
-                <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50 grid w-[min(22rem,calc(100vw-2rem))] gap-2 rounded-brand border-2 border-line bg-paper p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <strong className="text-sm font-black text-navy">Уведомления</strong>
-                    <Link className="text-xs font-black text-macaw-dark" to="/student/notifications">
-                      Показать все
-                    </Link>
-                  </div>
-                  {recentNotifications.map((notification) => {
-                    const isRead = notification.read || localState.readNotifications.includes(notification.id);
-                    return (
-                      <Link
-                        className="rounded-brand border-2 border-line p-3 hover:bg-mist"
-                        key={notification.id}
-                        onClick={() => markNotificationRead(notification.id)}
-                        to={notification.target ?? "/student/notifications"}
-                      >
-                        <span className="flex items-center gap-2 text-xs font-black text-graphite">
-                          {!isRead && <span className="size-2 rounded-full bg-ecto" />}
-                          {notification.title}
-                        </span>
-                        <span className="mt-1 block line-clamp-2 text-[11px] leading-4 text-ash">
-                          {notification.text}
-                        </span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            <div className="relative">
-              <button
                 aria-expanded={isProfileOpen}
                 className="flex min-w-0 items-center gap-3 rounded-brand border-2 border-transparent p-1.5 hover:border-line hover:bg-mist"
-                onClick={() => {
-                  setIsProfileOpen((value) => !value);
-                  setIsNotificationOpen(false);
-                }}
+                onClick={() => setIsProfileOpen((value) => !value)}
                 type="button"
               >
                 <span className="grid size-10 shrink-0 place-items-center rounded-brand border-2 border-macaw bg-macaw/10 text-sm font-black text-macaw-dark">
@@ -414,10 +325,10 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
                 </span>
                 <span className="hidden min-w-0 text-right sm:grid">
                   <strong className="truncate text-sm font-black text-graphite">
-                    {mockStudent.firstName} {mockStudent.lastName}
+                    {user?.first_name} {user?.last_name}
                   </strong>
                   <small className="truncate text-[11px] font-bold text-ash">
-                    {mockStudent.group} · {mockStudent.id}
+                    {user?.profile?.group ?? "Группа не указана"} · {user?.profile?.student_id ?? "ID не указан"}
                   </small>
                 </span>
                 <ChevronDown className="hidden text-ash sm:block" size={15} />
@@ -467,7 +378,7 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
 
       <ConfirmDialog
         confirmLabel="Выйти"
-        description="Текущая сессия будет завершена. Сохранённый учебный прогресс останется на устройстве."
+        description="Текущая сессия будет завершена на сервере."
         isOpen={isLogoutOpen}
         onCancel={closeLogout}
         onConfirm={logout}

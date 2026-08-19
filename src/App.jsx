@@ -1,5 +1,8 @@
 import { lazy, Suspense } from "react";
 import { Redirect, Route, Switch } from "react-router-dom";
+import { ADMIN_ROLES, STAFF_ROLES, STUDENT_ROLES } from "./auth/roles";
+import { GuestRoute } from "./components/auth/GuestRoute";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import AuthLayout from "./layouts/AuthLayout";
 import StudentLayout from "./layouts/StudentLayout";
 import StaffLayout from "./layouts/StaffLayout";
@@ -9,8 +12,6 @@ import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import LoginPage from "./pages/auth/LoginPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import ProfilePage from "./pages/profile/ProfilePage";
-import { getStaffSession } from "./services/staffSession";
-import { getStudentLocalState } from "./services/studentStorage";
 const StudentCalendarPage = lazy(() => import("./pages/student/StudentCalendarPage"));
 const StudentCoursePage = lazy(() => import("./pages/student/StudentCoursePage"));
 const StudentCoursesPage = lazy(() => import("./pages/student/StudentCoursesPage"));
@@ -18,13 +19,6 @@ const StudentDashboardPage = lazy(() => import("./pages/student/StudentDashboard
 const StudentLessonPage = lazy(() => import("./pages/student/StudentLessonPage"));
 const StudentMaterialPage = lazy(() => import("./pages/student/StudentMaterialPage"));
 const StudentProgressPage = lazy(() => import("./pages/student/StudentProgressPage"));
-const StudentAssignmentsPage = lazy(() => import("./pages/student/StudentAssignmentsPage"));
-const StudentAssignmentDetailPage = lazy(() => import("./pages/student/StudentAssignmentDetailPage"));
-const StudentTestsPage = lazy(() => import("./pages/student/StudentTestsPage"));
-const StudentTestRunPage = lazy(() => import("./pages/student/StudentTestRunPage"));
-const StudentTestResultPage = lazy(() => import("./pages/student/StudentTestResultPage"));
-const StudentSchedulePage = lazy(() => import("./pages/student/StudentSchedulePage"));
-const StudentNotificationsPage = lazy(() => import("./pages/student/StudentNotificationsPage"));
 const StaffDashboardPage = lazy(() => import("./pages/staff/StaffDashboardPage"));
 const StaffCoursesPage = lazy(() => import("./pages/staff/StaffCoursesPage"));
 const StaffCourseFormPage = lazy(() => import("./pages/staff/StaffCourseFormPage"));
@@ -32,8 +26,10 @@ const StaffCourseDetailPage = lazy(() => import("./pages/staff/StaffCourseDetail
 const CourseBuilderPage = lazy(() => import("./pages/staff/CourseBuilderPage"));
 const LessonEditorPage = lazy(() => import("./pages/staff/LessonEditorPage"));
 const StaffMaterialsPage = lazy(() => import("./pages/staff/StaffMaterialsPage"));
+const StaffCalendarPage = lazy(() => import("./pages/staff/StaffCalendarPage"));
 const CoursePreviewPage = lazy(() => import("./pages/staff/CoursePreviewPage"));
 const StaffTemplatesPage = lazy(() => import("./pages/staff/StaffTemplatesPage"));
+const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 
 function RouteLoading() {
   return (
@@ -46,22 +42,16 @@ function RouteLoading() {
   );
 }
 
-function ProtectedRoute({ children }) {
-  return getStudentLocalState().authenticated ? children : <Redirect to="/login" />;
-}
-
-function StaffProtectedRoute({ children }) {
-  return getStaffSession()?.authenticated ? children : <Redirect to="/login" />;
-}
-
 export default function App() {
   return (
     <Suspense fallback={<RouteLoading />}>
       <Switch>
       <Route path="/login">
-        <AuthLayout>
-          <LoginPage />
-        </AuthLayout>
+        <GuestRoute>
+          <AuthLayout>
+            <LoginPage />
+          </AuthLayout>
+        </GuestRoute>
       </Route>
       <Route path="/forgot-password">
         <AuthLayout>
@@ -74,7 +64,7 @@ export default function App() {
         </AuthLayout>
       </Route>
       <Route path="/student">
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={STUDENT_ROLES}>
           <StudentLayout>
             <Switch>
             <Route exact path="/student">
@@ -101,27 +91,6 @@ export default function App() {
             <Route exact path="/student/calendar">
               <StudentCalendarPage />
             </Route>
-            <Route exact path="/student/schedule">
-              <StudentSchedulePage />
-            </Route>
-            <Route exact path="/student/assignments">
-              <StudentAssignmentsPage />
-            </Route>
-            <Route exact path="/student/assignments/:assignmentId">
-              <StudentAssignmentDetailPage />
-            </Route>
-            <Route exact path="/student/tests">
-              <StudentTestsPage />
-            </Route>
-            <Route exact path="/student/tests/:testId/result">
-              <StudentTestResultPage />
-            </Route>
-            <Route exact path="/student/tests/:testId">
-              <StudentTestRunPage />
-            </Route>
-            <Route exact path="/student/notifications">
-              <StudentNotificationsPage />
-            </Route>
             <Route>
               <NotFoundPage />
             </Route>
@@ -130,16 +99,21 @@ export default function App() {
         </ProtectedRoute>
       </Route>
       <Route exact path="/courses/:courseId/preview">
-        <StaffProtectedRoute>
+        <ProtectedRoute allowedRoles={STAFF_ROLES}>
           <CoursePreviewPage />
-        </StaffProtectedRoute>
+        </ProtectedRoute>
       </Route>
-      <Route path={["/teacher", "/content", "/admin", "/courses", "/materials", "/templates"]}>
-        <StaffProtectedRoute>
+      <Route path={["/teacher", "/content", "/admin", "/courses", "/materials", "/templates", "/calendar"]}>
+        <ProtectedRoute allowedRoles={STAFF_ROLES}>
           <StaffLayout>
             <Switch>
             <Route exact path={["/teacher", "/content", "/admin"]}>
               <StaffDashboardPage />
+            </Route>
+            <Route exact path="/admin/users">
+              <ProtectedRoute allowedRoles={ADMIN_ROLES}>
+                <AdminUsersPage />
+              </ProtectedRoute>
             </Route>
             <Route exact path="/courses">
               <StaffCoursesPage />
@@ -162,6 +136,9 @@ export default function App() {
             <Route exact path="/materials">
               <StaffMaterialsPage />
             </Route>
+            <Route exact path="/calendar">
+              <StaffCalendarPage />
+            </Route>
             <Route exact path="/templates">
               <StaffTemplatesPage />
             </Route>
@@ -170,10 +147,10 @@ export default function App() {
             </Route>
             </Switch>
           </StaffLayout>
-        </StaffProtectedRoute>
+        </ProtectedRoute>
       </Route>
       <Route path="/profile">
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={STUDENT_ROLES}>
           <StudentLayout>
             {({ openLogout }) => <ProfilePage openLogout={openLogout} />}
           </StudentLayout>
