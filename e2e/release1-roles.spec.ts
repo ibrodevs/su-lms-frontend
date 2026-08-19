@@ -114,3 +114,55 @@ test("admin creates, refreshes, updates, and deletes a calendar event", async ({
   await expect.poll(() => failures.apiFailures).toEqual([]);
   await expect.poll(() => failures.consoleErrors).toEqual([]);
 });
+
+test("teacher creates and edits a course with backend organization references", async ({ page, request }) => {
+  const teacher = demoAccounts.find((account) => account.role === "teacher");
+  expect(teacher).toBeDefined();
+  await loginAs(page, teacher!);
+  const failures = collectRuntimeFailures(page);
+  const uniquePart = Date.now().toString().slice(-9);
+  const courseCode = `E2E-${uniquePart}`;
+  const courseTitle = `Integration course ${uniquePart}`;
+  const updatedTitle = `${courseTitle} updated`;
+  let courseId: number | null = null;
+
+  try {
+    await page.goto("/#/courses/create");
+    await expect(page.getByRole("heading", { name: "Создание курса" })).toBeVisible();
+    await page.getByLabel("Название курса").fill(courseTitle);
+    await page.getByLabel("Code").fill(courseCode);
+    await page.getByLabel("Описание").fill("Release 1 backend integration test");
+    await page.getByLabel("Факультет").selectOption({ index: 1 });
+    await expect.poll(() => page.getByLabel("Кафедра").locator("option").count()).toBeGreaterThan(1);
+    await page.getByLabel("Кафедра").selectOption({ index: 1 });
+    await expect.poll(() => page.getByLabel("Программа").locator("option").count()).toBeGreaterThan(1);
+    await page.getByLabel("Программа").selectOption({ index: 1 });
+    await page.getByRole("button", { name: "Сохранить черновик" }).click();
+
+    await expect(page).toHaveURL(/#\/courses\/\d+$/);
+    courseId = Number(page.url().match(/#\/courses\/(\d+)$/)?.[1]);
+    expect(courseId).toBeGreaterThan(0);
+    await expect(page.getByRole("heading", { name: courseTitle })).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole("heading", { name: courseTitle })).toBeVisible();
+
+    await page.getByRole("link", { name: "Редактировать" }).click();
+    await expect(page.getByRole("heading", { name: "Редактирование курса" })).toBeVisible();
+    await page.getByLabel("Название курса").fill(updatedTitle);
+    await page.getByRole("button", { name: "Сохранить изменения" }).click();
+    await expect(page.getByRole("heading", { name: updatedTitle })).toBeVisible();
+  } finally {
+    if (courseId) {
+      const loginResponse = await request.post("http://127.0.0.1:8001/api/v1/auth/login/", {
+        data: { login: "admin@su.edu.kg", password: process.env.E2E_DEMO_PASSWORD ?? "Demo123!" },
+      });
+      expect(loginResponse.ok()).toBe(true);
+      const deleteResponse = await request.delete(`http://127.0.0.1:8001/api/v1/courses/${courseId}/`);
+      expect(deleteResponse.status()).toBe(204);
+    }
+  }
+
+  await expect.poll(() => failures.mockRequests).toEqual([]);
+  await expect.poll(() => failures.apiFailures).toEqual([]);
+  await expect.poll(() => failures.consoleErrors).toEqual([]);
+});

@@ -3,7 +3,7 @@
 Date: 2026-08-19  
 Frontend branch: `feature/SULMS-release1-frontend-integration`  
 Backend repository: `adilhanDevs/su-lms-backend`  
-Backend branch: `develop`  
+Backend branch: `feature/SULMS-organization-reference-api`
 API base: `/api/v1/`
 
 ## Environment
@@ -19,8 +19,8 @@ API base: `/api/v1/`
 
 - `npm run typecheck` — passed
 - `npm run lint` — passed
-- `npm test` — 77 tests passed
-- `npm run test:e2e` — 8 Playwright scenarios passed
+- `npm test` — 78 tests passed
+- `npm run test:e2e` — 9 Playwright scenarios passed
 - `npm run build` — passed
 
 Playwright coverage:
@@ -30,6 +30,7 @@ Playwright coverage:
 - Student Dashboard, Courses, Course Detail and Calendar using backend data.
 - Staff Dashboard and Courses using backend-scoped data.
 - Staff Calendar Create → refresh → PATCH → DELETE against PostgreSQL-backed API.
+- Teacher Course Create → refresh → Edit using backend organization references and PostgreSQL persistence.
 - Release 2/3 navigation is absent from the Student runtime.
 - No requests to mock JSON/modules during tested flows.
 - No unexpected API errors, browser console errors or React runtime errors.
@@ -54,24 +55,30 @@ Current backend-connected screenshots are stored in `docs/screenshots/release1-e
 - LMS Admin Users and Enrollments
 - Staff Calendar
 
-## Backend blocker
+## Backend integration fix
 
-### Organization reference API
+### Organization reference API — resolved
 
-- Method: `GET`
-- Endpoint: `/api/v1/organization/faculties/`
-- Actual response: `404 Not Found`
-- Expected response: paginated or list response with active faculties
-- Affected roles: Teacher, Content Manager, LMS Admin
-- Reproduction: authenticate as a staff demo account and request the endpoint
+- Backend commit: `241bf86 feat: add organization reference api`
+- `GET /api/v1/organization/faculties/` — active faculties
+- `GET /api/v1/organization/departments/?faculty={id}` — active filtered departments
+- `GET /api/v1/organization/programs/?department={id}` — active filtered programs
+- `GET /api/v1/organization/semesters/` — active semesters with dates
+- Anonymous access returns `401`; all endpoints are read-only.
+- OpenAPI schema includes all four endpoints and filters.
 
-The same canonical read API is still required for departments, programs and semesters. Until these endpoints exist, Course Create/Edit cannot load valid foreign-key choices. The frontend intentionally shows a blocked state instead of saving mock organization data.
+Course Create/Edit now loads canonical organization values, submits multipart `POST`/`PATCH` requests, maps backend field errors and uploads real cover/syllabus files. Teacher-created courses are assigned to the current teacher by backend policy; LMS Admin can select an active teacher.
 
-Blocked E2E coverage:
+Verified E2E coverage:
 
 - Teacher Create Course and Edit Course
+- Browser refresh persistence after Course Create
+- Automated cleanup of the E2E Draft through the authenticated LMS Admin API
+
+Still pending:
+
 - Full Teacher → Content Manager → LMS Admin lifecycle starting from a newly created course
-- Backend restart persistence test was not executed against the currently shared local server process
+- Backend restart persistence test against the shared local server process
 
 ### Locked lesson fixture
 
@@ -79,4 +86,4 @@ The current seeded student account returns four courses and 40 lessons, all with
 
 ## Handoff
 
-Frontend work can proceed to delivery after the Organization API blocker is resolved and the blocked Teacher lifecycle E2E is rerun. Existing Release 1 read flows, progress flows, staff calendar CRUD and responsive layouts are verified.
+Organization integration and Course Create/Edit are ready. Existing Release 1 read flows, progress flows, staff calendar CRUD, course form persistence and responsive layouts are verified.

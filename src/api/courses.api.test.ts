@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildCourseListPath, coursesApi } from "./courses.api";
+import type { CourseWritePayload } from "./courses.api";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -83,6 +84,44 @@ describe("courses API", () => {
     expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({
       method: "POST",
       body: JSON.stringify({ title: "Course Copy", code: "CS101-COPY" }),
+    });
+  });
+
+  it("creates and updates courses with the canonical multipart payload", async () => {
+    const fetchMock = vi.fn().mockImplementation(
+      () => Promise.resolve(new Response(JSON.stringify({ id: 21 }), { status: 200 })),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const payload: CourseWritePayload = {
+      title: "API Integration",
+      code: "CS-API",
+      description: "Real backend course",
+      language: "en",
+      credits: 5,
+      semester: 4,
+      faculty: 1,
+      department: 2,
+      program: 3,
+      teacher: 7,
+      start_date: "2026-09-01",
+      end_date: "2026-12-24",
+    };
+
+    await coursesApi.create(payload);
+    await coursesApi.update(21, payload);
+
+    expect(fetchMock.mock.calls.map((call) => call[1]?.method)).toEqual(["POST", "PATCH"]);
+    expect(String(fetchMock.mock.calls[1]?.[0])).toMatch(/\/api\/v1\/courses\/21\/$/);
+    const body = fetchMock.mock.calls[0]?.[1]?.body;
+    expect(body).toBeInstanceOf(FormData);
+    expect(Object.fromEntries((body as FormData).entries())).toMatchObject({
+      title: "API Integration",
+      code: "CS-API",
+      semester: "4",
+      faculty: "1",
+      department: "2",
+      program: "3",
+      teacher: "7",
     });
   });
 });
