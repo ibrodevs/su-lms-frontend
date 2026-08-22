@@ -1,5 +1,7 @@
 # SU LMS Release 1 — Frontend Integration QA
 
+Final release-candidate summary: [`RELEASE1_FINAL_QA.md`](RELEASE1_FINAL_QA.md).
+
 Date: 2026-08-22
 Frontend branch: `feature/SULMS-release1-final-stabilization`
 Backend repository: `adilhanDevs/su-lms-backend`
