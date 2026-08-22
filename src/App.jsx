@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Redirect, Route, Switch } from "react-router-dom";
-import { ADMIN_ROLES, STAFF_ROLES, STUDENT_ROLES } from "./auth/roles";
+import { ADMIN_ROLES, APP_ROLES, STAFF_ROLES, STUDENT_ROLES } from "./auth/roles";
+import { featureFlags } from "./config/features";
 import { GuestRoute } from "./components/auth/GuestRoute";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import AuthLayout from "./layouts/AuthLayout";
@@ -8,10 +9,10 @@ import StudentLayout from "./layouts/StudentLayout";
 import StaffLayout from "./layouts/StaffLayout";
 import ForbiddenPage from "./pages/errors/ForbiddenPage";
 import NotFoundPage from "./pages/errors/NotFoundPage";
-import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import LoginPage from "./pages/auth/LoginPage";
-import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
-import ProfilePage from "./pages/profile/ProfilePage";
+const ForgotPasswordPage = lazy(() => import("./pages/auth/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("./pages/auth/ResetPasswordPage"));
+const ProfileShell = lazy(() => import("./pages/profile/ProfileShell"));
 const StudentCalendarPage = lazy(() => import("./pages/student/StudentCalendarPage"));
 const StudentCoursePage = lazy(() => import("./pages/student/StudentCoursePage"));
 const StudentCoursesPage = lazy(() => import("./pages/student/StudentCoursesPage"));
@@ -53,16 +54,16 @@ export default function App() {
           </AuthLayout>
         </GuestRoute>
       </Route>
-      <Route path="/forgot-password">
+      {featureFlags.passwordRecovery ? <Route path="/forgot-password">
         <AuthLayout>
           <ForgotPasswordPage />
         </AuthLayout>
-      </Route>
-      <Route path="/reset-password">
+      </Route> : null}
+      {featureFlags.passwordRecovery ? <Route path="/reset-password">
         <AuthLayout>
           <ResetPasswordPage />
         </AuthLayout>
-      </Route>
+      </Route> : null}
       <Route path="/student">
         <ProtectedRoute allowedRoles={STUDENT_ROLES}>
           <StudentLayout>
@@ -150,10 +151,8 @@ export default function App() {
         </ProtectedRoute>
       </Route>
       <Route path="/profile">
-        <ProtectedRoute allowedRoles={STUDENT_ROLES}>
-          <StudentLayout>
-            {({ openLogout }) => <ProfilePage openLogout={openLogout} />}
-          </StudentLayout>
+        <ProtectedRoute allowedRoles={APP_ROLES}>
+          <ProfileShell />
         </ProtectedRoute>
       </Route>
       <Route path="/403">

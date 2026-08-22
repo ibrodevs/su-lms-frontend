@@ -13,6 +13,7 @@ import {
   Search,
   Users,
   X,
+  UserRound,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
@@ -35,10 +36,15 @@ const pageTitles: Array<[RegExp, string]> = [
   [/^\/calendar$/, "Календарь"],
   [/^\/materials$/, "Материалы"],
   [/^\/templates$/, "Шаблоны"],
+  [/^\/profile$/, "Профиль"],
 ];
 
+interface StaffLayoutActions {
+  openLogout: () => void;
+}
+
 interface StaffLayoutProps {
-  children: ReactNode;
+  children: ReactNode | ((actions: StaffLayoutActions) => ReactNode);
 }
 
 export default function StaffLayout({ children }: StaffLayoutProps) {
@@ -257,13 +263,16 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
                 <span className="mt-3 inline-flex rounded-brand border-2 border-eel bg-eel/20 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-ecto-dark">
                   {staffRoleLabels[role]}
                 </span>
+                <Link className="mt-3 flex min-h-10 items-center gap-2 rounded-brand border-2 border-line px-3 text-xs font-black text-graphite hover:border-macaw" to="/profile"><UserRound aria-hidden="true" size={16} /> Открыть профиль</Link>
               </div>
             ) : null}
           </div>
         </header>
 
         <main className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-          {children}
+          {typeof children === "function"
+            ? children({ openLogout: () => setIsLogoutOpen(true) })
+            : children}
         </main>
       </div>
 

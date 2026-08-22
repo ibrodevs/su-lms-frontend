@@ -4,6 +4,7 @@ import { Link, useHistory } from "react-router-dom";
 import { ApiClientError } from "../../api/errors";
 import { getHomePathForRoles } from "../../auth/roles";
 import { useAuth } from "../../auth/useAuth";
+import { featureFlags } from "../../config/features";
 import Alert from "../../components/common/Alert";
 import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
@@ -94,9 +95,7 @@ export default function LoginPage() {
 
         <div className="su-form__options">
           <span />
-          <Link className="su-link" to="/forgot-password">
-            Забыли пароль?
-          </Link>
+          {featureFlags.passwordRecovery ? <Link className="su-link" to="/forgot-password">Забыли пароль?</Link> : null}
         </div>
 
         <Button className="su-button--wide" isLoading={isLoading} type="submit">

@@ -25,6 +25,7 @@ export const STAFF_ROLES: RoleCode[] = [
   "lms_admin",
   "super_admin",
 ];
+export const APP_ROLES: RoleCode[] = [...STAFF_ROLES, ...STUDENT_ROLES];
 
 export function getPrimaryRole(roles: readonly RoleCode[]): RoleCode | null {
   return ROLE_PRIORITY.find((role) => roles.includes(role)) ?? null;
