@@ -9,9 +9,11 @@
     "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "test:e2e:release1": "playwright test e2e/release1-roles.spec.ts e2e/release1-lifecycle.spec.ts e2e/release1-final-stabilization.spec.ts e2e/release1-responsive.mobile.spec.ts",
     "test:e2e:headed": "playwright test --headed",
     "screenshots:e2e": "node scripts/capture-release1-screenshots.mjs",
     "typecheck": "tsc --noEmit",
+    "verify": "npm run typecheck && npm run lint && npm test && npm run build",
     "preview": "vite preview",
     "deploy": "vercel",
     "deploy:prod": "vercel --prod"

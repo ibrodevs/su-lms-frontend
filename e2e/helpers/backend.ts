@@ -14,6 +14,16 @@ export interface FinalStabilizationFixture {
   staffLessonId: number;
 }
 
+export async function restartBackend(): Promise<void> {
+  if (!existsSync(resolve(backendDirectory, "docker-compose.yml"))) {
+    throw new Error(`Backend repository was not found at ${backendDirectory}. Set E2E_BACKEND_DIR.`);
+  }
+  await execFileAsync("docker", ["compose", "restart", "backend"], {
+    cwd: backendDirectory,
+    maxBuffer: 2 * 1024 * 1024,
+  });
+}
+
 async function runDjangoScript(script: string, environment: Record<string, string>): Promise<string> {
   if (!existsSync(resolve(backendDirectory, "docker-compose.yml"))) {
     throw new Error(`Backend repository was not found at ${backendDirectory}. Set E2E_BACKEND_DIR.`);
