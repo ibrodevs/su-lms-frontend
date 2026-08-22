@@ -1,5 +1,5 @@
 import type { RoleCode } from "../api/auth.api";
-import type { StaffRole, StaffSession } from "../types/staff";
+import type { StaffRole } from "../types/staff";
 
 const ROLE_PRIORITY: RoleCode[] = [
   "super_admin",
@@ -9,12 +9,6 @@ const ROLE_PRIORITY: RoleCode[] = [
   "teaching_assistant",
   "student",
 ];
-
-const LEGACY_STAFF_USER_IDS: Record<StaffRole, string> = {
-  teacher: "teacher-1",
-  "content-manager": "content-1",
-  admin: "admin-1",
-};
 
 export const STUDENT_ROLES: RoleCode[] = ["student"];
 export const ADMIN_ROLES: RoleCode[] = ["lms_admin", "super_admin"];
@@ -46,19 +40,6 @@ export function getStaffRole(roles: readonly RoleCode[]): StaffRole | null {
   if (role === "content_manager") return "content-manager";
   if (role === "lms_admin" || role === "super_admin") return "admin";
   return null;
-}
-
-export function createLegacyStaffSession(
-  roles: readonly RoleCode[],
-): StaffSession | null {
-  const role = getStaffRole(roles);
-  if (!role) return null;
-
-  return {
-    authenticated: true,
-    role,
-    userId: LEGACY_STAFF_USER_IDS[role],
-  };
 }
 
 export function hasAnyRole(

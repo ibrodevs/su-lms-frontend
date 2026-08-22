@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  createLegacyStaffSession,
   getHomePathForRoles,
   getPrimaryRole,
   getStaffRole,
@@ -27,15 +26,6 @@ describe("auth roles", () => {
   it("checks allowed backend roles", () => {
     expect(hasAnyRole(["teacher"], ["teacher", "lms_admin"])).toBe(true);
     expect(hasAnyRole(["student"], ["teacher", "lms_admin"])).toBe(false);
-  });
-
-  it("adapts backend identity only for temporary static course data", () => {
-    expect(createLegacyStaffSession(["content_manager"])).toEqual({
-      authenticated: true,
-      role: "content-manager",
-      userId: "content-1",
-    });
-    expect(createLegacyStaffSession(["student"])).toBeNull();
   });
 });
 
