@@ -20,11 +20,13 @@ API base: `/api/v1/`
 - `npm run typecheck` — passed
 - `npm run lint` — passed
 - `npm test` — 39 active API-driven tests passed
-- `npm run test:e2e:release1` — includes the four-role lifecycle, final stabilization and responsive suites
+- `npm run test:e2e` — 14 Playwright scenarios passed sequentially against the real backend
 - `npm run build` — passed
 - Lifecycle screenshot run — passed independently with 9 final screenshots
 - Backend test workflow — 518 tests passed
 - Backend Pylint workflow — 10.00/10
+- `npm audit` and `npm audit --omit=dev` — 0 vulnerabilities
+- WCAG A/AA automated audit — 0 violations on Login, Student Dashboard, Student Courses, Student Profile, Staff Courses and Staff Profile
 
 Playwright coverage:
 
@@ -45,6 +47,7 @@ Playwright coverage:
 - Teacher upload and launch of a valid SCORM package.
 - Content Manager course copy, reusable template creation and course creation from that template.
 - Course structure and completed student progress remain available after a real backend container restart.
+- Shared-backend browser files run with one worker so restart and lifecycle fixtures cannot race.
 
 ## Runtime data audit
 

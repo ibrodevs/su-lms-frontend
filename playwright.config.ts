@@ -22,6 +22,7 @@ export default defineConfig({
   retries: 0,
   testDir: "./e2e",
   timeout: 45_000,
+  workers: 1,
   use: {
     baseURL,
     screenshot: "only-on-failure",

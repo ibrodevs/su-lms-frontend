@@ -23,6 +23,8 @@ Date: 2026-08-22
 - PostgreSQL persistence verified after a backend container restart.
 - Legacy runtime mocks, fake IDs and unreachable prototype modules removed.
 - Desktop and Pixel 5 responsive checks.
+- WCAG A/AA contrast and semantics checks on authentication, student and staff surfaces.
+- Dependency audits with zero npm vulnerabilities and no broken backend Python requirements.
 - GitHub Actions quality and real-backend E2E workflows.
 
 ## Repeatable verification
@@ -34,6 +36,8 @@ npm run test:e2e:release1
 ```
 
 The browser suite expects the backend at `http://127.0.0.1:8001` and accepts `E2E_BACKEND_DIR` when the backend repository is not adjacent to the frontend checkout. Temporary courses, templates, files, enrollments and progress are removed after each run.
+
+The final local run completed 14/14 Playwright scenarios with a single shared-backend worker. It produced 9 continuous lifecycle screenshots and 7 final stabilization screenshots. A post-run database query confirmed that no `E2E-*` courses or templates remained.
 
 ## Production boundary
 
