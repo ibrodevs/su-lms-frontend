@@ -10,7 +10,7 @@ import { ApiClientError } from "../../api/errors";
 import { organizationApi } from "../../api/organization.api";
 import { queryClient } from "../../api/queryClient";
 import { referenceKeys } from "../../api/referenceKeys";
-import { usersApi } from "../../api/users.api";
+import { referencesApi } from "../../api/references.api";
 import { useAuth } from "../../auth/useAuth";
 import StatePanel from "../../components/student/StatePanel";
 
@@ -38,7 +38,6 @@ interface CourseFormState {
 type FormFieldName = keyof CourseFormState;
 type FormErrors = Partial<Record<FormFieldName, string>>;
 
-const teacherParams = { role: "teacher" as const, isActive: true, pageSize: 100 };
 const adminRoles = new Set(["lms_admin", "super_admin"]);
 const emptyForm: CourseFormState = {
   title: "",
@@ -128,8 +127,8 @@ export default function StaffCourseFormPage() {
     enabled: canWrite && departmentId !== undefined,
   });
   const teachersQuery = useQuery({
-    queryKey: referenceKeys.users(teacherParams),
-    queryFn: () => usersApi.list(teacherParams),
+    queryKey: referenceKeys.teachers,
+    queryFn: referencesApi.teachers,
     enabled: canWrite && canSelectTeacher,
   });
 
@@ -256,7 +255,7 @@ export default function StaffCourseFormPage() {
   }
 
   const existingCourse = courseQuery.data;
-  const teachers = teachersQuery.data?.results ?? [];
+  const teachers = teachersQuery.data ?? [];
 
   return (
     <div className="grid gap-6">

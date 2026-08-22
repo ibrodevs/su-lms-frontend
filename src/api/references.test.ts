@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { organizationApi } from "./organization.api";
+import { referencesApi } from "./references.api";
 import { rolesApi } from "./roles.api";
 import { usersApi } from "./users.api";
 
@@ -9,6 +10,18 @@ afterEach(() => {
 });
 
 describe("reference APIs", () => {
+  it("loads the compact teacher reference endpoint", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify([{ id: 4, full_name: "Teacher Demo", email: "teacher@su.edu.kg" }]), {
+        status: 200,
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(referencesApi.teachers()).resolves.toHaveLength(1);
+    expect(String(fetchMock.mock.calls[0]?.[0])).toMatch(/\/api\/v1\/references\/teachers\/$/);
+  });
+
   it("builds the server-side user filters expected by the backend", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ count: 0, next: null, previous: null, results: [] }), {

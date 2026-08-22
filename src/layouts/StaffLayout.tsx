@@ -85,7 +85,7 @@ export default function StaffLayout({ children }: StaffLayoutProps) {
       items.push({
         icon: FileCheck2,
         label: "Курсы на проверке",
-        to: "/courses?status=under-review",
+        to: "/courses?status=under_review",
         exact: false,
       });
     }
