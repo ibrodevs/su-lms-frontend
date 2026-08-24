@@ -31,7 +31,7 @@ for (const account of demoAccounts) {
       await page.getByRole("link", { name: /Мои курсы|Все курсы/ }).first().click();
       await expect(page).toHaveURL(/#\/courses$/);
       await expect(page.getByRole("heading", { name: "Курсы", exact: true })).toBeVisible();
-      await expect(page.getByText("Данные backend с серверной фильтрацией и пагинацией.")).toBeVisible();
+      await expect(page.getByText("Серверная фильтрация, сортировка и пагинация по данным SU LMS.")).toBeVisible();
     }
 
     await expect.poll(() => failures.mockRequests).toEqual([]);

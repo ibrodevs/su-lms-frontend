@@ -1,9 +1,11 @@
 # SU LMS Release 1 — Frontend Integration QA
 
-Date: 2026-08-19  
-Frontend branch: `feature/SULMS-release1-frontend-integration`  
-Backend repository: `adilhanDevs/su-lms-backend`  
-Backend branch: clean `develop` at merge commit `71fced6`
+Final release-candidate summary: [`RELEASE1_FINAL_QA.md`](RELEASE1_FINAL_QA.md).
+
+Date: 2026-08-22
+Frontend branch: `feature/SULMS-release1-final-stabilization`
+Backend repository: `adilhanDevs/su-lms-backend`
+Backend branch: clean `develop` at merge commit `0e93ecd00f64723f9ff17411b0fbb3d516213920`
 API base: `/api/v1/`
 
 ## Environment
@@ -19,12 +21,14 @@ API base: `/api/v1/`
 
 - `npm run typecheck` — passed
 - `npm run lint` — passed
-- `npm test` — 78 tests passed
-- `npm run test:e2e` — 10 Playwright scenarios passed
+- `npm test` — 39 active API-driven tests passed
+- `npm run test:e2e` — 14 Playwright scenarios passed sequentially against the real backend
 - `npm run build` — passed
 - Lifecycle screenshot run — passed independently with 9 final screenshots
-- Backend test workflow — 514 tests passed
+- Backend test workflow — 518 tests passed
 - Backend Pylint workflow — 10.00/10
+- `npm audit` and `npm audit --omit=dev` — 0 vulnerabilities
+- WCAG A/AA automated audit — 0 violations on Login, Student Dashboard, Student Courses, Student Profile, Staff Courses and Staff Profile
 
 Playwright coverage:
 
@@ -41,6 +45,11 @@ Playwright coverage:
 - No requests to mock JSON/modules during tested flows.
 - No unexpected API errors, browser console errors or React runtime errors.
 - Desktop Chromium and Pixel 5 viewport checks, including horizontal overflow assertions.
+- Student locked prerequisite → completion → dependent lesson unlock using a real database fixture.
+- Teacher upload and launch of a valid SCORM package.
+- Content Manager course copy, reusable template creation and course creation from that template.
+- Course structure and completed student progress remain available after a real backend container restart.
+- Shared-backend browser files run with one worker so restart and lifecycle fixtures cannot race.
 
 ## Runtime data audit
 
@@ -48,6 +57,7 @@ Playwright coverage:
 - Student search and profile use backend data.
 - Course, structure, materials, templates, enrollments, users, progress and calendar runtime paths use `/api/v1/`.
 - `localStorage` is limited to the collapsed sidebar UI preference.
+- Password recovery routes are disabled by default until an email delivery contract is configured.
 - Assignments, Tests, Schedule and Notifications remain outside the Release 1 route graph.
 
 ## Screenshots
@@ -74,6 +84,8 @@ The general screenshot set also covers:
 - Content Manager review list
 - LMS Admin Users and Enrollments
 - Staff Calendar
+
+Final stabilization evidence is stored in `docs/screenshots/release1-final-stabilization/` and covers prerequisite locking/unlocking, SCORM, course copy, templates and progress after backend restart.
 
 ## Backend integration fix
 
@@ -117,10 +129,17 @@ Verified E2E coverage:
 - The backend container was restarted and returned to `healthy`.
 - The draft was found with the same ID, code and status after restart, then removed through the authenticated API with `204`.
 
-### Locked lesson fixture
+### Release 1 reference API — resolved
 
-The current seeded student account returns four courses and 40 lessons, all with `is_available = true`. Locked lesson rendering is covered by unit tests, but the locked → complete prerequisite → unlocked browser scenario requires a backend fixture with an `after_lesson` dependency.
+- Backend PR: `adilhanDevs/su-lms-backend#10` — merged into `develop`
+- `GET /api/v1/references/teachers/` supplies compact active teacher records to course-management roles.
+- Enrollment responses expose nested student identity with the canonical university Student ID.
+- Frontend course filters and enrollment tables use these contracts directly.
+
+### Locked lesson fixture — verified
+
+The final stabilization browser suite creates an isolated `after_lesson` dependency, verifies the locked state, completes the prerequisite, verifies the unlocked state and removes all temporary data. The same course and completed progress are then verified after a backend restart.
 
 ## Handoff
 
-Organization integration, Course Create/Edit and the complete four-role Release 1 lifecycle are ready on the merged backend `develop`. Existing read flows, progress flows, staff calendar CRUD, file uploads, course form persistence, restart persistence and responsive layouts are verified.
+Organization integration, Course Create/Edit, reference data and the complete four-role Release 1 lifecycle are ready on merged backend `develop`. Read flows, progress, prerequisite unlock, SCORM, templates, course copy, staff calendar CRUD, file uploads, restart persistence and responsive layouts are verified against the real API.

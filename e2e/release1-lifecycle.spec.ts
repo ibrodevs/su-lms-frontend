@@ -220,6 +220,7 @@ test("Release 1 lifecycle works from teacher creation to student completion", as
     await expect(adminPage.getByRole("status").filter({ hasText: "Студент добавлен" })).toBeVisible();
     await expect(adminPage.getByText("Всего записей: 1", { exact: true })).toBeVisible();
     await expect(adminPage.getByRole("cell", { name: studentEmail })).toBeVisible();
+    await expect(adminPage.getByRole("cell", { name: "SU-2024-0012" })).toBeVisible();
     await capture(adminPage, "05-admin-published-enrollment.png");
 
     const startsAt = new Date(Date.now() + 24 * 60 * 60 * 1_000);

@@ -1,41 +1,32 @@
-# Release 1 frontend integration blockers
+# Release 1 backend integration status
 
-Verified against backend `develop` at commit `6f1b89d` on 2026-08-18.
+Verified against backend `develop` at merge commit `0e93ecd00f64723f9ff17411b0fbb3d516213920` on 2026-08-22.
 
-## Organization reference API is unavailable
+There are no open backend blockers for the Release 1 frontend scope.
 
-- Endpoints: `/api/v1/organization/faculties/`, `/departments/`, `/programs/`, `/semesters/`
-- Method: `GET`
-- Request: authenticated request from a course creator
-- Response: `404` with `not_found`
-- Expected: read-only active Organization references and the documented faculty/department filters
-- Affected roles: Teacher, Content Manager, LMS Admin, Super Admin
-- Reproduction: start the seeded backend and request any endpoint listed above
+## Organization references — resolved
 
-Impact: Course Create/Edit cannot replace `mockOrganization` and the Release 1 frontend task cannot be considered complete.
+- Active faculties, departments, programs and semesters are available under `/api/v1/organization/`.
+- Department and program endpoints support the dependent Faculty → Department → Program filters.
+- Anonymous requests return `401`; authenticated course-management roles receive read-only reference data.
 
-## Content Manager cannot load the teacher reference list
+## Teacher reference list — resolved
 
-- Endpoint: `/api/v1/users/?role=teacher&is_active=true&page_size=100`
-- Method: `GET`
-- Request: authenticated as `content@su.edu.kg`
-- Response: `403 permission_denied` — `LMS administrator access is required.`
-- Expected: a read-only teacher reference list for roles allowed to create courses
-- Affected role: Content Manager
-- Reproduction: seed Release 1, sign in as Content Manager, request the endpoint above
+- `GET /api/v1/references/teachers/` returns compact active teacher records.
+- The response exposes only `id`, `full_name` and `email`.
+- Teacher, Content Manager, LMS Admin and Super Admin can populate course forms without access to user administration.
 
-Impact: Content Manager has `courses.create` but cannot populate the required Teacher select without mock data. User administration can remain restricted to LMS Admin/Super Admin; the course-form reference endpoint needs compatible read access or a dedicated compact endpoint.
+## Enrollment student identity — resolved
 
-## Enrollment roster does not expose student identity data
+- Course enrollment responses contain nested student identity: `id`, `full_name`, `email` and `student_id`.
+- Enrollment creation continues to accept the numeric student user ID.
+- Teacher and LMS Admin views display the canonical university Student ID without mock data.
 
-- Endpoint: `/api/v1/courses/{courseId}/enrollments/`
-- Method: `GET`
-- Request: authenticated as a Teacher assigned to the course or as LMS Admin
-- Response: each enrollment contains `student` as a numeric user ID only; no name, email, or profile `student_id`
-- Related endpoint: `/api/v1/users/?role=student&is_active=true`
-- Related response: LMS Admin receives name/email but no profile `student_id`; Teacher and Teaching Assistant receive `403 permission_denied`
-- Expected: a compact nested student summary (`id`, `full_name`, `email`, `student_id`) in the enrollment response, or a read-only roster reference endpoint available to `enrollments.view`
-- Affected roles: Teacher, Teaching Assistant, LMS Admin, Super Admin
-- Reproduction: seed Release 1, sign in as Teacher or LMS Admin, request the course enrollments endpoint, then try to resolve the returned student ID through User API
+## Delivery evidence
 
-Impact: the frontend can list canonical status, source and enrollment time, but Teacher/TA cannot resolve student names and no supported role can display the required university Student ID. The UI deliberately shows the backend user ID and an unavailable Student ID placeholder instead of mock data.
+- Backend commit: `8457c3c feat: add release1 reference data endpoints`
+- Backend PR: [adilhanDevs/su-lms-backend#10](https://github.com/adilhanDevs/su-lms-backend/pull/10)
+- Backend merge commit: `0e93ecd00f64723f9ff17411b0fbb3d516213920`
+- Backend tests: 518 passed
+- Pylint: 10.00/10
+- Live API checks passed on clean `develop`.

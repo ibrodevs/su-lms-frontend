@@ -19,23 +19,23 @@
 
 SU LMS is the frontend application for Salymbekov University's Learning Management System. The platform is being developed as part of the university's Digital Campus initiative and will provide dedicated experiences for students, teachers and administrators.
 
-The current version contains an interactive student-facing prototype with subjects, lessons, learning materials, quizzes and local progress tracking. The project is being expanded into a production-ready API-driven application for Release 1.
+The current version is an API-driven Release 1 application for Students, Teachers, Content Managers and LMS Administrators. Authentication, course management, learning progress, enrollments and calendar data are persisted by the SU LMS Django REST API.
 
 ## Current Features
 
-- Student ID demo authentication
-- Student dashboard and subject catalogue
-- Course and lesson navigation
-- YouTube video lessons and lesson notes
-- PDF and learning material viewer
-- Lesson-based quizzes and result review
-- Progress persistence through `localStorage`
-- Responsive mobile presentation interface
-- Static Vercel deployment with hash routing
+- Cookie-based authentication and role-aware routing
+- Student dashboard, course catalogue, lessons and progress
+- Prerequisite-based lesson availability
+- Teacher course builder with files and SCORM packages
+- Content review, return and resubmission lifecycle
+- Course templates and course copying
+- LMS Admin publishing, enrollment, users and calendar
+- Backend-driven filters and organization references
+- Responsive desktop and mobile layouts
 
 ## Release 1 Scope
 
-The first production release will include:
+The first production release includes:
 
 - Real authentication and session management
 - Role-based access for Student, Teacher and Administrator
@@ -66,14 +66,14 @@ The first production release will include:
 
 ```text
 src/
-├── data/               # Temporary static demo data
-├── pages/              # Student-facing application pages
-├── App.jsx             # Main routing and application shell
-├── main.jsx            # Application entry point
-└── styles.css           # Global styles and responsive UI
+├── api/                # Typed API clients
+├── auth/               # Session, permissions and route guards
+├── components/         # Shared UI and layouts
+├── pages/              # Student and staff application pages
+├── types/              # API and domain contracts
+├── App.jsx             # Role-aware route graph
+└── main.jsx            # Application entry point
 ```
-
-> The current structure reflects the prototype stage. It will be gradually reorganized into feature-based modules as backend integration begins.
 
 ## Getting Started
 
@@ -110,6 +110,11 @@ The application will be available at the URL shown by Vite, usually `http://loca
 |---|---|
 | `npm run dev` | Start the local development server |
 | `npm run build` | Create a production build |
+| `npm run typecheck` | Validate TypeScript contracts |
+| `npm run lint` | Run ESLint with zero warnings |
+| `npm test` | Run unit and integration tests |
+| `npm run test:e2e:release1` | Run the Release 1 real-backend browser suite |
+| `npm run verify` | Run typecheck, lint, unit tests and production build |
 | `npm run preview` | Preview the production build locally |
 | `npm run deploy` | Deploy a preview to Vercel |
 | `npm run deploy:prod` | Deploy to Vercel production |
@@ -119,37 +124,35 @@ The application will be available at the URL shown by Vite, usually `http://loca
 ```env
 VITE_API_BASE_URL=http://localhost:8000/api/v1
 VITE_APP_NAME=SU LMS
+VITE_ENABLE_PASSWORD_RECOVERY=false
 ```
 
 Do not commit real credentials, access tokens or production secrets.
 
 ## Backend Integration
 
-The frontend will communicate with the Django REST backend:
+The frontend communicates with the Django REST backend:
 
 - Repository: [adilhanDevs/su-lms-backend](https://github.com/adilhanDevs/su-lms-backend)
-- Planned API prefix: `/api/v1/`
-- Authentication: JWT / secure cookie-based sessions
-
-During the prototype phase, learning data is stored locally in `src/data/mockData.js`. This data will be replaced by API services as each module is integrated.
+- API prefix: `/api/v1/`
+- Authentication: secure cookie-based sessions with single-flight refresh handling
+- Data source: PostgreSQL-backed API; no runtime mock or local learning-data fallback
 
 ## Development Workflow
 
-1. Create a branch from `main`.
+1. Create a branch from `develop`.
 2. Use a descriptive branch name such as `feature/course-builder` or `fix/mobile-navigation`.
 3. Keep commits focused and use clear messages.
-4. Run `npm run build` before opening a pull request.
+4. Run `npm run verify` and the relevant Playwright suite before opening a pull request.
 5. Open a pull request with screenshots for visual changes.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for full contribution guidelines.
 
 ## Project Status
 
-**Active development — Release 1**
+**Release 1 stabilization**
 
-Target: complete the Core LMS frontend and backend integration by **20 August 2026**.
-
-The public deployment currently represents a frontend prototype and does not yet contain production authentication or live university data.
+The application is ready for review against the integrated backend. Production deployment still requires environment-specific HTTPS, secrets, storage and email configuration.
 
 ## Security
 

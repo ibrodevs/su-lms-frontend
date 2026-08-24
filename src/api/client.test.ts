@@ -40,6 +40,34 @@ describe("apiClient", () => {
     expect(String(fetchMock.mock.calls[1]?.[0])).toContain("/auth/refresh/");
   });
 
+  it("shares one refresh request across concurrent unauthorized calls", async () => {
+    let refreshCalls = 0;
+    const attempts = new Map<string, number>();
+    const fetchMock = vi.fn().mockImplementation(async (input: string | URL | Request) => {
+      const path = new URL(String(input), "http://localhost").pathname;
+      if (path.endsWith("/auth/refresh/")) {
+        refreshCalls += 1;
+        await Promise.resolve();
+        return new Response(null, { status: 204 });
+      }
+      const attempt = (attempts.get(path) ?? 0) + 1;
+      attempts.set(path, attempt);
+      return attempt === 1
+        ? new Response(null, { status: 401 })
+        : new Response(JSON.stringify({ path }), { status: 200 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(Promise.all([
+      apiClient.get("/courses/"),
+      apiClient.get("/student/dashboard/"),
+    ])).resolves.toEqual([
+      { path: "/api/v1/courses/" },
+      { path: "/api/v1/student/dashboard/" },
+    ]);
+    expect(refreshCalls).toBe(1);
+  });
+
   it("does not enter a refresh loop when the retried request is unauthorized", async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(new Response(null, { status: 401 }))

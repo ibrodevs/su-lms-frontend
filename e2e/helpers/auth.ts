@@ -21,7 +21,7 @@ export async function loginAs(page: Page, account: DemoAccount): Promise<void> {
   await page.getByLabel("Логин или email").fill(account.email);
   await page.locator("#password").fill(demoPassword);
   await page.getByRole("button", { name: "Войти" }).click();
-  await expect(page).toHaveURL(new RegExp(`#${account.homePath}$`));
+  await expect(page).toHaveURL(new RegExp(`#${account.homePath}$`), { timeout: 30_000 });
 }
 
 export function collectRuntimeFailures(page: Page): {

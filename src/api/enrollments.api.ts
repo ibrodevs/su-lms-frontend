@@ -4,9 +4,16 @@ import type { PaginatedResponse } from "./types";
 export type EnrollmentStatus = "active" | "completed" | "withdrawn" | "suspended";
 export type EnrollmentSource = "manual" | "sis_sync";
 
+export interface EnrollmentStudentDto {
+  id: number;
+  full_name: string;
+  email: string | null;
+  student_id: string | null;
+}
+
 export interface EnrollmentDto {
   id: number;
-  student: number;
+  student: EnrollmentStudentDto;
   course: number;
   status: EnrollmentStatus;
   source: EnrollmentSource;
