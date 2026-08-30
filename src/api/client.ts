@@ -26,6 +26,47 @@ export interface ApiRequestOptions extends Omit<RequestInit, "body"> {
   skipAuthRefresh?: boolean;
 }
 
+const ACCESS_TOKEN_KEY = "su_lms_access_token";
+const REFRESH_TOKEN_KEY = "su_lms_refresh_token";
+
+export function getStoredAccessToken(): string | null {
+  try {
+    return localStorage.getItem(ACCESS_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function getStoredRefreshToken(): string | null {
+  try {
+    return localStorage.getItem(REFRESH_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setStoredTokens(tokens: { access?: string; refresh?: string }) {
+  try {
+    if (tokens.access) {
+      localStorage.setItem(ACCESS_TOKEN_KEY, tokens.access);
+    }
+    if (tokens.refresh) {
+      localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refresh);
+    }
+  } catch {
+    // Ignore localStorage errors
+  }
+}
+
+export function clearStoredTokens() {
+  try {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+  } catch {
+    // Ignore
+  }
+}
+
 let refreshRequest: Promise<boolean> | null = null;
 
 function isRefreshAllowed(path: string): boolean {
@@ -34,13 +75,33 @@ function isRefreshAllowed(path: string): boolean {
 }
 
 async function refreshSession(): Promise<boolean> {
+  const refreshToken = getStoredRefreshToken();
+
   if (!refreshRequest) {
     refreshRequest = fetch(getApiUrl("/auth/refresh/"), {
       method: "POST",
       credentials: "include",
-      headers: { Accept: "application/json" },
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: refreshToken ? JSON.stringify({ refresh: refreshToken }) : undefined,
     })
-      .then((response) => response.ok)
+      .then(async (response) => {
+        if (!response.ok) {
+          clearStoredTokens();
+          return false;
+        }
+        try {
+          const data = await response.json();
+          if (data?.access) {
+            setStoredTokens({ access: data.access });
+          }
+        } catch {
+          // Token refreshed via cookies only
+        }
+        return true;
+      })
       .catch(() => false)
       .finally(() => {
         refreshRequest = null;
@@ -56,6 +117,11 @@ function createHeaders(options: ApiRequestOptions): Headers {
 
   if (options.json !== undefined) {
     headers.set("Content-Type", "application/json");
+  }
+
+  const token = getStoredAccessToken();
+  if (token && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${token}`);
   }
 
   return headers;
