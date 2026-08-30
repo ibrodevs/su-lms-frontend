@@ -1,4 +1,4 @@
-import { apiClient } from "./client";
+import { apiClient, clearStoredTokens, getStoredRefreshToken, setStoredTokens } from "./client";
 
 export type RoleCode =
   | "student"
@@ -32,10 +32,13 @@ export interface LoginResponseDto {
     full_name: string;
     roles: RoleCode[];
   };
+  access?: string;
+  refresh?: string;
 }
 
 export interface MessageResponseDto {
   message: string;
+  access?: string;
 }
 
 export interface LoginPayload {
@@ -44,26 +47,41 @@ export interface LoginPayload {
 }
 
 export const authApi = {
-  login(payload: LoginPayload): Promise<LoginResponseDto> {
-    return apiClient.post<LoginResponseDto>("/auth/login/", payload, {
+  async login(payload: LoginPayload): Promise<LoginResponseDto> {
+    const response = await apiClient.post<LoginResponseDto>("/auth/login/", payload, {
       skipAuthRefresh: true,
     });
+    if (response?.access) {
+      setStoredTokens({ access: response.access, refresh: response.refresh });
+    }
+    return response;
   },
 
   me(): Promise<CurrentUserDto> {
     return apiClient.get<CurrentUserDto>("/auth/me/");
   },
 
-  refresh(): Promise<MessageResponseDto> {
-    return apiClient.post<MessageResponseDto>("/auth/refresh/", undefined, {
-      skipAuthRefresh: true,
-    });
+  async refresh(): Promise<MessageResponseDto> {
+    const refreshToken = getStoredRefreshToken();
+    const response = await apiClient.post<MessageResponseDto>(
+      "/auth/refresh/",
+      refreshToken ? { refresh: refreshToken } : undefined,
+      { skipAuthRefresh: true },
+    );
+    if (response?.access) {
+      setStoredTokens({ access: response.access });
+    }
+    return response;
   },
 
-  logout(): Promise<MessageResponseDto> {
-    return apiClient.post<MessageResponseDto>("/auth/logout/", undefined, {
-      skipAuthRefresh: true,
-    });
+  async logout(): Promise<MessageResponseDto> {
+    try {
+      return await apiClient.post<MessageResponseDto>("/auth/logout/", undefined, {
+        skipAuthRefresh: true,
+      });
+    } finally {
+      clearStoredTokens();
+    }
   },
 };
 
