@@ -1,28 +1,22 @@
 import { ArrowRight, Mail } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useHistory } from "react-router-dom";
+import { ApiClientError } from "../../api/errors";
+import { getHomePathForRoles } from "../../auth/roles";
+import { useAuth } from "../../auth/useAuth";
+import { featureFlags } from "../../config/features";
 import Alert from "../../components/common/Alert";
 import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import PasswordInput from "../../components/common/PasswordInput";
-import useDelayedAction from "../../hooks/useDelayedAction";
-import { getStudentLocalState, setAuthenticated } from "../../services/studentStorage";
-
-const credentials = {
-  email: "student@su.edu.kg",
-  password: "Demo123!",
-};
 
 export default function LoginPage() {
-  const [form, setForm] = useState({ email: "", password: "", remember: false });
+  const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [authError, setAuthError] = useState("");
-  const { execute, isLoading } = useDelayedAction(750);
+  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
   const history = useHistory();
-
-  useEffect(() => {
-    if (getStudentLocalState().authenticated) history.replace("/student");
-  }, [history]);
 
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -30,7 +24,7 @@ export default function LoginPage() {
     setAuthError("");
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const nextErrors = {
@@ -45,15 +39,21 @@ export default function LoginPage() {
       return;
     }
 
-    execute(() => {
-      if (form.email.trim() === credentials.email && form.password === credentials.password) {
-        setAuthenticated(true);
-        history.push("/student");
-        return;
+    setIsLoading(true);
+    try {
+      const user = await login({ login: form.email.trim(), password: form.password });
+      history.replace(getHomePathForRoles(user.roles));
+    } catch (error) {
+      if (error instanceof ApiClientError && error.code === "authentication_failed") {
+        setAuthError("Неверный логин или пароль.");
+      } else if (error instanceof ApiClientError) {
+        setAuthError(error.message);
+      } else {
+        setAuthError("Сервис авторизации временно недоступен.");
       }
-
-      setAuthError("Неверный логин или пароль.");
-    });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -94,18 +94,8 @@ export default function LoginPage() {
         />
 
         <div className="su-form__options">
-          <label className="su-checkbox">
-            <input
-              checked={form.remember}
-              onChange={(event) => updateField("remember", event.target.checked)}
-              type="checkbox"
-            />
-            <span aria-hidden="true" />
-            Запомнить меня
-          </label>
-          <Link className="su-link" to="/forgot-password">
-            Забыли пароль?
-          </Link>
+          <span />
+          {featureFlags.passwordRecovery ? <Link className="su-link" to="/forgot-password">Забыли пароль?</Link> : null}
         </div>
 
         <Button className="su-button--wide" isLoading={isLoading} type="submit">
@@ -117,6 +107,9 @@ export default function LoginPage() {
       <div className="su-demo-credentials">
         <span>Демо-доступ</span>
         <code>student@su.edu.kg</code>
+        <code>teacher@su.edu.kg</code>
+        <code>content@su.edu.kg</code>
+        <code>admin@su.edu.kg</code>
         <code>Demo123!</code>
       </div>
     </>

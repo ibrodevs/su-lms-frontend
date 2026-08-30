@@ -1,28 +1,18 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
-  "routes": [
+  "rewrites": [
     {
-      "src": "/assets/(.*)",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable",
-        "X-Content-Type-Options": "nosniff"
-      },
-      "continue": true
+      "source": "/api/:path*",
+      "destination": "https://sulmsbackend21.pythonanywhere.com/api/:path*"
     },
     {
-      "src": "/materials/(.*)",
-      "headers": {
-        "X-Content-Type-Options": "nosniff"
-      },
-      "continue": true
+      "source": "/media/:path*",
+      "destination": "https://sulmsbackend21.pythonanywhere.com/media/:path*"
     },
     {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
