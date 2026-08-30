@@ -1,7 +1,7 @@
 import { parseApiError } from "./errors";
 import type { ApiResponseType } from "./types";
 
-const FALLBACK_API_BASE_URL = "/api/v1";
+const FALLBACK_API_BASE_URL = "https://sulmsbackend21.pythonanywhere.com/api/v1";
 
 function normalizeBaseUrl(value: string): string {
   return value.replace(/\/+$/, "");
