@@ -14,6 +14,7 @@ export interface CourseReferenceDto {
   id: number;
   name: string;
   code?: string;
+  admission_year?: number;
 }
 
 export interface CourseTeacherDto {
@@ -33,6 +34,7 @@ export interface CourseListDto {
   faculty: CourseReferenceDto;
   department: CourseReferenceDto;
   program: CourseReferenceDto;
+  group?: CourseReferenceDto | null;
   cover: string | null;
   start_date: string;
   end_date: string;
@@ -85,6 +87,7 @@ export interface CourseWritePayload {
   faculty: number;
   department: number;
   program: number;
+  group?: number | null;
   teacher?: number;
   start_date: string;
   end_date: string;
@@ -112,6 +115,11 @@ export function buildCourseWriteFormData(payload: CourseWritePayload): FormData 
     ["end_date", payload.end_date],
   ];
   if (payload.teacher !== undefined) scalarFields.push(["teacher", payload.teacher]);
+  if (payload.group !== undefined && payload.group !== null) {
+    scalarFields.push(["group", payload.group]);
+  } else if (payload.group === null) {
+    formData.append("group", "");
+  }
   scalarFields.forEach(([key, value]) => formData.append(key, String(value)));
   if (payload.cover) formData.append("cover", payload.cover);
   if (payload.syllabus) formData.append("syllabus", payload.syllabus);
@@ -128,6 +136,7 @@ export interface CourseListParams {
   faculty?: number;
   department?: number;
   program?: number;
+  group?: number;
   teacher?: number;
   ordering?: string;
 }
@@ -149,6 +158,7 @@ export function buildCourseListPath(params: CourseListParams): string {
   if (params.faculty) searchParams.set("faculty", String(params.faculty));
   if (params.department) searchParams.set("department", String(params.department));
   if (params.program) searchParams.set("program", String(params.program));
+  if (params.group) searchParams.set("group", String(params.group));
   if (params.teacher) searchParams.set("teacher", String(params.teacher));
   if (params.ordering) searchParams.set("ordering", params.ordering);
   const query = searchParams.toString();

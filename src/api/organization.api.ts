@@ -33,6 +33,14 @@ export interface SemesterDto {
   is_active: boolean;
 }
 
+export interface GroupDto {
+  id: number;
+  program: number;
+  name: string;
+  admission_year: number;
+  is_active: boolean;
+}
+
 type ReferenceCollection<T> = T[] | PaginatedResponse<T>;
 
 function normalizeReferenceCollection<T>(response: ReferenceCollection<T>): T[] {
@@ -60,9 +68,17 @@ export const organizationApi = {
       .then(normalizeReferenceCollection);
   },
 
+  groups(programId?: number): Promise<GroupDto[]> {
+    const query = programId ? `?program=${programId}` : "";
+    return apiClient
+      .get<ReferenceCollection<GroupDto>>(`/organization/groups/${query}`)
+      .then(normalizeReferenceCollection);
+  },
+
   semesters(): Promise<SemesterDto[]> {
     return apiClient
       .get<ReferenceCollection<SemesterDto>>("/organization/semesters/")
       .then(normalizeReferenceCollection);
   },
 };
+

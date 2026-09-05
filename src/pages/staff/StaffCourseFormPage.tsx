@@ -27,6 +27,7 @@ interface CourseFormState {
   facultyId: string;
   departmentId: string;
   programId: string;
+  groupId: string;
   semesterId: string;
   teacherId: string;
   startDate: string;
@@ -48,6 +49,7 @@ const emptyForm: CourseFormState = {
   facultyId: "",
   departmentId: "",
   programId: "",
+  groupId: "",
   semesterId: "",
   teacherId: "",
   startDate: "",
@@ -64,6 +66,7 @@ const backendFieldMap: Record<string, FormFieldName> = {
   faculty: "facultyId",
   department: "departmentId",
   program: "programId",
+  group: "groupId",
   semester: "semesterId",
   teacher: "teacherId",
   start_date: "startDate",
@@ -116,6 +119,7 @@ export default function StaffCourseFormPage() {
   });
   const facultyId = Number(form.facultyId) || undefined;
   const departmentId = Number(form.departmentId) || undefined;
+  const programId = Number(form.programId) || undefined;
   const departmentsQuery = useQuery({
     queryKey: referenceKeys.departments(facultyId),
     queryFn: () => organizationApi.departments(facultyId),
@@ -125,6 +129,11 @@ export default function StaffCourseFormPage() {
     queryKey: referenceKeys.programs(departmentId),
     queryFn: () => organizationApi.programs(departmentId),
     enabled: canWrite && departmentId !== undefined,
+  });
+  const groupsQuery = useQuery({
+    queryKey: referenceKeys.groups(programId),
+    queryFn: () => organizationApi.groups(programId),
+    enabled: canWrite && programId !== undefined,
   });
   const teachersQuery = useQuery({
     queryKey: referenceKeys.teachers,
@@ -145,6 +154,7 @@ export default function StaffCourseFormPage() {
       facultyId: String(course.faculty.id),
       departmentId: String(course.department.id),
       programId: String(course.program.id),
+      groupId: course.group ? String(course.group.id) : "",
       semesterId: String(course.semester.id),
       teacherId: course.teacher ? String(course.teacher.id) : "",
       startDate: course.start_date,
@@ -188,8 +198,16 @@ export default function StaffCourseFormPage() {
       if (key === "facultyId") {
         next.departmentId = "";
         next.programId = "";
+        next.groupId = "";
       }
       if (key === "departmentId") next.programId = "";
+      if (key === "departmentId") {
+        next.programId = "";
+        next.groupId = "";
+      }
+      if (key === "programId") {
+        next.groupId = "";
+      }
       if (key === "semesterId") {
         const semester = semestersQuery.data?.find((item) => String(item.id) === value);
         if (semester) {
@@ -233,6 +251,7 @@ export default function StaffCourseFormPage() {
       faculty: Number(form.facultyId),
       department: Number(form.departmentId),
       program: Number(form.programId),
+      group: form.groupId ? Number(form.groupId) : (isEditing ? null : undefined),
       semester: Number(form.semesterId),
       teacher: form.teacherId ? Number(form.teacherId) : undefined,
       start_date: form.startDate,
@@ -281,6 +300,7 @@ export default function StaffCourseFormPage() {
           <FormField error={errors.facultyId} label="Факультет" required><select className={inputClasses(errors.facultyId)} onChange={(event) => updateField("facultyId", event.target.value)} value={form.facultyId}><option value="">Выберите факультет</option>{facultiesQuery.data?.map((item) => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}</select></FormField>
           <FormField error={errors.departmentId} label="Кафедра" required><select className={inputClasses(errors.departmentId)} disabled={!form.facultyId || departmentsQuery.isPending} onChange={(event) => updateField("departmentId", event.target.value)} value={form.departmentId}><option value="">{departmentsQuery.isPending ? "Загрузка…" : "Выберите кафедру"}</option>{departmentsQuery.data?.map((item) => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}</select></FormField>
           <FormField error={errors.programId} label="Программа" required><select className={inputClasses(errors.programId)} disabled={!form.departmentId || programsQuery.isPending} onChange={(event) => updateField("programId", event.target.value)} value={form.programId}><option value="">{programsQuery.isPending ? "Загрузка…" : "Выберите программу"}</option>{programsQuery.data?.map((item) => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}</select></FormField>
+          <FormField error={errors.groupId} label="Академическая группа"><select className={inputClasses(errors.groupId)} disabled={!form.programId || groupsQuery.isPending} onChange={(event) => updateField("groupId", event.target.value)} value={form.groupId}><option value="">{groupsQuery.isPending ? "Загрузка…" : "Все группы / Без группы"}</option>{groupsQuery.data?.map((item) => <option key={item.id} value={item.id}>{item.name} ({item.admission_year})</option>)}</select></FormField>
           <FormField error={errors.semesterId} label="Семестр" required><select className={inputClasses(errors.semesterId)} onChange={(event) => updateField("semesterId", event.target.value)} value={form.semesterId}><option value="">Выберите семестр</option>{semestersQuery.data?.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></FormField>
           {canSelectTeacher ? <FormField error={errors.teacherId} label="Преподаватель"><select className={inputClasses(errors.teacherId)} onChange={(event) => updateField("teacherId", event.target.value)} value={form.teacherId}><option value="">Назначить позже</option>{teachers.map((teacher) => <option key={teacher.id} value={teacher.id}>{teacher.full_name}</option>)}</select></FormField> : <FormField label="Преподаватель"><input className={inputClasses()} disabled value={isTeacher ? user?.full_name ?? "Текущий преподаватель" : existingCourse?.teacher?.full_name ?? "Назначается LMS Admin"} /></FormField>}
           <FormField error={errors.startDate} label="Дата начала" required><input className={inputClasses(errors.startDate)} onChange={(event) => updateField("startDate", event.target.value)} type="date" value={form.startDate} /></FormField>
