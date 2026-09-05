@@ -77,7 +77,6 @@ export default function StaffCoursesPage() {
     group,
     teacher,
     ordering,
-  }), [deferredSearch, department, faculty, language, ordering, page, pageSize, program, semester, status, teacher]);
   }), [deferredSearch, department, faculty, group, language, ordering, page, pageSize, program, semester, status, teacher]);
   const coursesQuery = useQuery({ queryKey: courseKeys.list(params), queryFn: () => coursesApi.list(params), placeholderData: (previousData) => previousData });
   const facultiesQuery = useQuery({ queryKey: referenceKeys.faculties, queryFn: organizationApi.faculties });
