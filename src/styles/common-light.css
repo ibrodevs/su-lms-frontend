@@ -3,6 +3,7 @@
   --su-surface: #ffffff;
   --su-surface-raised: #f7f7f7;
   --su-surface-soft: #f7fff1;
+  --su-surface-soft: #f0f7ff;
   --su-border: #e5e5e5;
   --su-border-strong: #cfcfcf;
   --su-text: #3c3c3c;
@@ -11,9 +12,14 @@
   --su-primary: #347a00;
   --su-primary-strong: #286200;
   --su-primary-soft: rgba(88, 204, 2, 0.1);
+  --su-primary: #1868db;
+  --su-primary-strong: #104fb3;
+  --su-primary-soft: rgba(24, 104, 219, 0.1);
   --su-cyan: #0879b2;
   --su-success: #347a00;
   --su-success-soft: rgba(88, 204, 2, 0.1);
+  --su-success: #16a34a;
+  --su-success-soft: rgba(22, 163, 74, 0.1);
   --su-danger: #ea2b2b;
   --su-danger-soft: rgba(234, 43, 43, 0.08);
   --su-warning: #ffb800;
@@ -31,9 +37,11 @@ body {
 
 .su-logo__mark {
   border: 2px solid #286200;
+  border: 2px solid #104fb3;
   border-bottom-width: 4px;
   border-radius: 12px;
   background: #347a00;
+  background: #1868db;
   box-shadow: none;
   color: #ffffff;
 }
@@ -52,6 +60,7 @@ body {
 .su-logo__copy small,
 .su-eyebrow {
   color: #347a00;
+  color: #1868db;
 }
 
 .su-auth-layout,
@@ -64,6 +73,7 @@ body {
 .su-auth-aside {
   border-right: 2px solid #e5e5e5;
   background: #f7fff1;
+  background: #f0f7ff;
 }
 
 .su-auth-aside::before,
@@ -96,6 +106,9 @@ body {
   border-color: #a5ed6e;
   background: #f7fff1;
   color: #347a00;
+  border-color: #7cb7f7;
+  background: #f0f7ff;
+  color: #1868db;
 }
 
 .su-auth-aside__content > p,
@@ -137,9 +150,12 @@ body {
 .su-pill,
 .su-status {
   border: 2px solid #a5ed6e;
+  border: 2px solid #7cb7f7;
   border-radius: 12px;
   background: #f7fff1;
   color: #347a00;
+  background: #f0f7ff;
+  color: #1868db;
 }
 
 .su-input,
@@ -153,6 +169,7 @@ body {
 
 .su-input:hover {
   border-color: #a5ed6e;
+  border-color: #7cb7f7;
 }
 
 .su-input:focus {
@@ -171,25 +188,33 @@ body {
 .su-button--primary {
   border-color: #286200;
   background: #347a00;
+  border-color: #104fb3;
+  background: #1868db;
   box-shadow: none;
   color: #ffffff;
 }
 
 .su-button--primary:hover:not(:disabled) {
   background: #2d6f00;
+  background: #1358bd;
   box-shadow: none;
 }
 
 .su-button--secondary {
   border-color: #a5ed6e;
+  border-color: #7cb7f7;
   background: #ffffff;
   color: #347a00;
+  color: #1868db;
 }
 
 .su-button--secondary:hover:not(:disabled) {
   border-color: #347a00;
   background: #f7fff1;
   color: #347a00;
+  border-color: #1868db;
+  background: #f0f7ff;
+  color: #1868db;
 }
 
 .su-button--danger {
@@ -216,6 +241,9 @@ body {
   border-color: rgba(88, 204, 2, 0.35);
   background: rgba(88, 204, 2, 0.08);
   color: #347a00;
+  border-color: rgba(22, 163, 74, 0.35);
+  background: rgba(22, 163, 74, 0.08);
+  color: #15803d;
 }
 
 .su-alert--error {
@@ -238,6 +266,8 @@ body {
 .su-checkbox input:checked + span {
   border-color: #286200;
   background: #347a00;
+  border-color: #104fb3;
+  background: #1868db;
 }
 
 .su-page {
@@ -247,6 +277,8 @@ body {
 .su-profile-hero {
   border: 2px solid #347a00;
   background: #f7fff1;
+  border: 2px solid #1868db;
+  background: #f0f7ff;
 }
 
 .su-avatar {
@@ -294,6 +326,9 @@ body {
   border-color: #a5ed6e;
   background: #f7fff1;
   color: #347a00;
+  border-color: #7cb7f7;
+  background: #f0f7ff;
+  color: #1868db;
 }
 
 .su-error-page {
@@ -302,10 +337,12 @@ body {
 
 .su-error-card__visual span {
   color: rgba(88, 204, 2, 0.15);
+  color: rgba(24, 104, 219, 0.15);
 }
 
 .su-error-card__visual svg {
   color: #347a00;
+  color: #1868db;
   filter: none;
 }
 
