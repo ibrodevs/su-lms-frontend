@@ -10,6 +10,7 @@ export const referenceKeys = {
   faculties: ["organization", "faculties"] as const,
   departments: (facultyId?: number) => ["organization", "departments", facultyId] as const,
   programs: (departmentId?: number) => ["organization", "programs", departmentId] as const,
+  groups: (programId?: number) => ["organization", "groups", programId] as const,
   semesters: ["organization", "semesters"] as const,
 };
 
