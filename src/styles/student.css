@@ -5,6 +5,10 @@
   --color-ecto-dark: #2f7200;
   --color-lingot: #a5ed6e;
   --color-eel: #d7ffb8;
+  --color-ecto: #1868db;
+  --color-ecto-dark: #104fb3;
+  --color-lingot: #7cb7f7;
+  --color-eel: #d8ebfe;
   --color-macaw: #0879b2;
   --color-macaw-dark: #075d88;
   --color-navy: #042c60;
@@ -73,6 +77,7 @@
 
 .student-scrollbar {
   scrollbar-color: #d7ffb8 transparent;
+  scrollbar-color: #d8ebfe transparent;
   scrollbar-width: thin;
 }
 
@@ -115,8 +120,10 @@
 
 .student-rich-text blockquote {
   border-left: 4px solid #a5ed6e;
+  border-left: 4px solid #7cb7f7;
   padding: 0.75rem 1rem;
   background: #f7fff1;
+  background: #f0f7ff;
   color: #4b4b4b;
 }
 
